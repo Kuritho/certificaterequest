@@ -1,4 +1,3 @@
-// src/lib/supabase.js
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
@@ -19,7 +18,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 });
 
-// Test connection immediately
+// Test connection
 supabase.from('profiles').select('count', { count: 'exact', head: true })
   .then(({ data, error }) => {
     if (error) {

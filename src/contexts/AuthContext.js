@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.js
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
@@ -17,7 +16,6 @@ export function AuthProvider({ children }) {
       try {
         console.log('🔵 Initializing Auth...');
         
-        // Set a safety timeout - force loading to false after 5 seconds
         timeoutId = setTimeout(() => {
           if (isMounted && loading) {
             console.warn('⚠️ Auth initialization timeout - forcing loading to false');
@@ -25,7 +23,6 @@ export function AuthProvider({ children }) {
           }
         }, 5000);
 
-        // Get session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -40,7 +37,6 @@ export function AuthProvider({ children }) {
         console.log('🔵 Session:', session ? '✅ Has session' : '❌ No session');
 
         if (session?.user) {
-          // Fetch profile
           try {
             const { data: profile, error: profileError } = await supabase
               .from('profiles')
@@ -51,7 +47,6 @@ export function AuthProvider({ children }) {
             if (profileError) {
               console.warn('🔴 Profile fetch error:', profileError);
               
-              // Try to create profile
               if (profileError.code === 'PGRST116') {
                 console.log('🔵 Creating profile...');
                 await supabase
@@ -64,7 +59,6 @@ export function AuthProvider({ children }) {
                   }]);
               }
               
-              // Use fallback
               const userData = {
                 id: session.user.id,
                 email: session.user.email,
@@ -89,7 +83,6 @@ export function AuthProvider({ children }) {
             }
           } catch (profileError) {
             console.error('🔴 Profile error:', profileError);
-            // Use fallback
             const userData = {
               id: session.user.id,
               email: session.user.email,
@@ -102,7 +95,6 @@ export function AuthProvider({ children }) {
             }
           }
         } else {
-          // Check localStorage for cached user
           const cachedUser = localStorage.getItem('sacramental_user');
           if (cachedUser) {
             try {
@@ -118,7 +110,6 @@ export function AuthProvider({ children }) {
           }
         }
         
-        // Always set loading to false
         if (isMounted) {
           setLoading(false);
         }
@@ -129,11 +120,9 @@ export function AuthProvider({ children }) {
           setLoading(false);
         }
       } finally {
-        // Clear the timeout
         if (timeoutId) {
           clearTimeout(timeoutId);
         }
-        // Ensure loading is false
         if (isMounted) {
           setLoading(false);
         }
@@ -142,7 +131,6 @@ export function AuthProvider({ children }) {
 
     initializeAuth();
 
-    // Auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('🔵 Auth state changed:', event);
       
@@ -157,7 +145,6 @@ export function AuthProvider({ children }) {
 
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         if (session?.user) {
-          // Re-fetch profile
           supabase
             .from('profiles')
             .select('*')
@@ -201,7 +188,6 @@ export function AuthProvider({ children }) {
         }
       }
       
-      // Ensure loading is false
       if (isMounted) {
         setTimeout(() => setLoading(false), 100);
       }
@@ -305,7 +291,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Expose the loading state and a way to force refresh
   const refreshUser = async () => {
     setLoading(true);
     const { data: { session } } = await supabase.auth.getSession();

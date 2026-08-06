@@ -1,4 +1,3 @@
-// src/pages/Register.js
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -35,8 +34,6 @@ export default function Register() {
     setLoading(true);
 
     try {
-      console.log('Attempting to register user:', form.email);
-
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: form.email.trim(),
         password: form.password.trim(),
@@ -65,7 +62,6 @@ export default function Register() {
       }
 
       console.log('Registration successful!');
-      
       alert('✅ Registration successful! You can now log in.');
       navigate('/login');
       

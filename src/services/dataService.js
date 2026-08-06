@@ -1,4 +1,3 @@
-// src/services/dataService.js
 import { supabase } from '../lib/supabase';
 
 class DataService {
@@ -39,7 +38,6 @@ class DataService {
     return data[0];
   }
 
-  // ✅ ADD THIS - Delete a certificate request
   async deleteRequest(id) {
     const { data, error } = await supabase
       .from('certificate_requests')
@@ -51,7 +49,6 @@ class DataService {
     return data;
   }
 
-  // ✅ ADD THIS - Delete multiple certificate requests
   async deleteMultipleRequests(ids) {
     const { data, error } = await supabase
       .from('certificate_requests')
@@ -63,7 +60,6 @@ class DataService {
     return data;
   }
 
-  // ✅ ADD THIS - Delete all certificate requests
   async deleteAllRequests() {
     const { data, error } = await supabase
       .from('certificate_requests')
@@ -99,7 +95,6 @@ class DataService {
     return data[0];
   }
 
-  // ✅ ADD THIS - Delete an announcement
   async deleteAnnouncement(id) {
     const { data, error } = await supabase
       .from('announcements')
@@ -135,7 +130,6 @@ class DataService {
     return data[0];
   }
 
-  // ✅ ADD THIS - Delete an event
   async deleteEvent(id) {
     const { data, error } = await supabase
       .from('events')
@@ -183,7 +177,6 @@ class DataService {
     return data[0];
   }
 
-  // ✅ ADD THIS - Delete a notification
   async deleteNotification(id) {
     const { data, error } = await supabase
       .from('notifications')
@@ -195,7 +188,6 @@ class DataService {
     return data;
   }
 
-  // ✅ ADD THIS - Delete all notifications for a user
   async deleteAllUserNotifications(userId) {
     const { data, error } = await supabase
       .from('notifications')

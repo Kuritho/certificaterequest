@@ -1,4 +1,3 @@
-// src/pages/admin/Reports.js
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { dataService } from '../../services/dataService';
@@ -46,9 +45,7 @@ export default function Reports() {
 
   const handleExport = () => {
     const header = 'ID,User,Certificate,Status,Date\n';
-    const rows = filtered.map(r => 
-      `${r.id},"${r.user_name}",${r.certificate_type},${r.status},${format(new Date(r.created_at), 'yyyy-MM-dd')}`
-    ).join('\n');
+    const rows = filtered.map(r => `${r.id},"${r.user_name}",${r.certificate_type},${r.status},${format(new Date(r.created_at), 'yyyy-MM-dd')}`).join('\n');
     const blob = new Blob([header + rows], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -62,9 +59,7 @@ export default function Reports() {
       alert('Please select at least one report to delete.');
       return;
     }
-    
     if (!window.confirm(`Delete ${selectedReports.length} selected report(s)?`)) return;
-    
     try {
       await dataService.deleteMultipleRequests(selectedReports);
       await loadRequests();
@@ -80,10 +75,8 @@ export default function Reports() {
       alert('No reports to delete.');
       return;
     }
-    
     if (!window.confirm(`⚠️ Delete ALL ${filtered.length} filtered reports?`)) return;
     if (!window.confirm('⚠️⚠️ FINAL CONFIRMATION: Delete all?')) return;
-    
     try {
       const ids = filtered.map(r => r.id);
       await dataService.deleteMultipleRequests(ids);
@@ -96,11 +89,7 @@ export default function Reports() {
   };
 
   const toggleSelection = (id) => {
-    setSelectedReports(prev => 
-      prev.includes(id) 
-        ? prev.filter(item => item !== id)
-        : [...prev, id]
-    );
+    setSelectedReports(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
   };
 
   const selectAll = () => {
@@ -125,50 +114,18 @@ export default function Reports() {
       
       <div className="report-filters">
         <select value={filter.type} onChange={(e) => setFilter({ ...filter, type: e.target.value })}>
-          <option value="">All Types</option>
-          <option>Baptism</option>
-          <option>Confirmation</option>
-          <option>Marriage</option>
+          <option value="">All Types</option><option>Baptism</option><option>Confirmation</option><option>Marriage</option>
         </select>
         <select value={filter.status} onChange={(e) => setFilter({ ...filter, status: e.target.value })}>
-          <option value="">All Status</option>
-          <option>pending</option>
-          <option>processing</option>
-          <option>ready</option>
-          <option>completed</option>
-          <option>rejected</option>
+          <option value="">All Status</option><option>pending</option><option>processing</option><option>ready</option><option>completed</option><option>rejected</option>
         </select>
         <input type="date" placeholder="From" value={filter.dateFrom} onChange={(e) => setFilter({ ...filter, dateFrom: e.target.value })} />
         <input type="date" placeholder="To" value={filter.dateTo} onChange={(e) => setFilter({ ...filter, dateTo: e.target.value })} />
         <button onClick={handleExport}>📥 Export CSV</button>
-        <button 
-          onClick={handleDeleteSelected}
-          disabled={selectedReports.length === 0}
-          style={{
-            background: '#8B1A1A',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '4px',
-            padding: '6px 15px',
-            cursor: selectedReports.length === 0 ? 'not-allowed' : 'pointer',
-            opacity: selectedReports.length === 0 ? 0.5 : 1
-          }}
-        >
+        <button onClick={handleDeleteSelected} disabled={selectedReports.length === 0} style={{ background: '#8B1A1A', color: '#fff', border: 'none', borderRadius: '4px', padding: '6px 15px', cursor: selectedReports.length === 0 ? 'not-allowed' : 'pointer', opacity: selectedReports.length === 0 ? 0.5 : 1 }}>
           🗑️ Delete Selected ({selectedReports.length})
         </button>
-        <button 
-          onClick={handleDeleteAll}
-          style={{
-            background: '#8B1A1A',
-            color: '#fff',
-            border: '2px solid #8B1A1A',
-            borderRadius: '4px',
-            padding: '6px 15px',
-            cursor: 'pointer'
-          }}
-        >
-          ⚠️ Delete All
-        </button>
+        <button onClick={handleDeleteAll} style={{ background: '#8B1A1A', color: '#fff', border: '2px solid #8B1A1A', borderRadius: '4px', padding: '6px 15px', cursor: 'pointer' }}>⚠️ Delete All</button>
       </div>
 
       <div className="report-summary">
@@ -178,46 +135,23 @@ export default function Reports() {
       <table className="report-table">
         <thead>
           <tr>
-            <th style={{ width: '30px' }}>
-              <input 
-                type="checkbox" 
-                checked={selectedReports.length === filtered.length && filtered.length > 0}
-                onChange={selectAll}
-              />
-            </th>
-            <th>ID</th>
-            <th>User</th>
-            <th>Certificate</th>
-            <th>Status</th>
-            <th>Date Requested</th>
-            <th>Appointment</th>
-            <th>Payment</th>
+            <th style={{ width: '30px' }}><input type="checkbox" checked={selectedReports.length === filtered.length && filtered.length > 0} onChange={selectAll} /></th>
+            <th>ID</th><th>User</th><th>Certificate</th><th>Status</th><th>Date Requested</th><th>Appointment</th><th>Payment</th>
           </tr>
         </thead>
         <tbody>
           {filtered.map(r => (
             <tr key={r.id}>
-              <td>
-                <input 
-                  type="checkbox" 
-                  checked={selectedReports.includes(r.id)}
-                  onChange={() => toggleSelection(r.id)}
-                />
-              </td>
-              <td>{r.id}</td>
-              <td>{r.user_name}</td>
-              <td>{r.certificate_type}</td>
+              <td><input type="checkbox" checked={selectedReports.includes(r.id)} onChange={() => toggleSelection(r.id)} /></td>
+              <td>{r.id}</td><td>{r.user_name}</td><td>{r.certificate_type}</td>
               <td><span className={`status-${r.status}`}>{r.status}</span></td>
               <td>{format(new Date(r.created_at), 'yyyy-MM-dd')}</td>
-              <td>{r.appointment_date} {r.appointment_time}</td>
-              <td>{r.payment_method}</td>
+              <td>{r.appointment_date} {r.appointment_time}</td><td>{r.payment_method}</td>
             </tr>
           ))}
-          {filtered.length === 0 && (
-            <tr><td colSpan="8">No records found.</td></tr>
-          )}
+          {filtered.length === 0 && (<tr><td colSpan="8">No records found.</td></tr>)}
         </tbody>
       </table>
     </div>
   );
-} 
+}

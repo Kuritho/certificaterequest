@@ -1,4 +1,3 @@
-// src/pages/admin/PostAnnouncement.js
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -24,7 +23,6 @@ export default function PostAnnouncement() {
         supabase.from('announcements').select('*').order('created_at', { ascending: false }),
         supabase.from('events').select('*').order('date', { ascending: true })
       ]);
-      
       if (ann.data) setExistingAnnouncements(ann.data);
       if (ev.data) setExistingEvents(ev.data);
     } catch (error) {
@@ -36,14 +34,7 @@ export default function PostAnnouncement() {
     e.preventDefault();
     setLoading(true);
     try {
-      await supabase
-        .from('announcements')
-        .insert([{
-          title: announcement.title,
-          content: announcement.content,
-          user_id: user.id
-        }]);
-      
+      await supabase.from('announcements').insert([{ title: announcement.title, content: announcement.content, user_id: user.id }]);
       setAnnouncement({ title: '', content: '' });
       await loadExistingData();
       alert('✅ Announcement posted successfully!');
@@ -59,15 +50,7 @@ export default function PostAnnouncement() {
     e.preventDefault();
     setLoading(true);
     try {
-      await supabase
-        .from('events')
-        .insert([{
-          title: event.title,
-          date: event.date,
-          time: event.time,
-          user_id: user.id
-        }]);
-      
+      await supabase.from('events').insert([{ title: event.title, date: event.date, time: event.time, user_id: user.id }]);
       setEvent({ title: '', date: '', time: '' });
       await loadExistingData();
       alert('✅ Event posted successfully!');
@@ -81,7 +64,6 @@ export default function PostAnnouncement() {
 
   const deleteAnnouncement = async (id) => {
     if (!window.confirm('Delete this announcement?')) return;
-    
     try {
       await dataService.deleteAnnouncement(id);
       await loadExistingData();
@@ -93,7 +75,6 @@ export default function PostAnnouncement() {
 
   const deleteEvent = async (id) => {
     if (!window.confirm('Delete this event?')) return;
-    
     try {
       await dataService.deleteEvent(id);
       await loadExistingData();
@@ -108,68 +89,26 @@ export default function PostAnnouncement() {
       <h2>Post Announcements & Events</h2>
       
       <div className="tabs">
-        <button onClick={() => setTab('announcement')} className={tab === 'announcement' ? 'active' : ''}>
-          📢 Announcement
-        </button>
-        <button onClick={() => setTab('event')} className={tab === 'event' ? 'active' : ''}>
-          📅 Event
-        </button>
+        <button onClick={() => setTab('announcement')} className={tab === 'announcement' ? 'active' : ''}>📢 Announcement</button>
+        <button onClick={() => setTab('event')} className={tab === 'event' ? 'active' : ''}>📅 Event</button>
       </div>
 
       {tab === 'announcement' && (
         <>
           <form onSubmit={postAnnouncement} className="post-form">
-            <div className="form-group">
-              <label>Title *</label>
-              <input
-                value={announcement.title}
-                onChange={(e) => setAnnouncement({ ...announcement, title: e.target.value })}
-                required
-                disabled={loading}
-              />
-            </div>
-            <div className="form-group">
-              <label>Content *</label>
-              <textarea
-                value={announcement.content}
-                onChange={(e) => setAnnouncement({ ...announcement, content: e.target.value })}
-                required
-                disabled={loading}
-                rows="4"
-              />
-            </div>
-            <button type="submit" disabled={loading}>
-              {loading ? 'Posting...' : '📢 Post Announcement'}
-            </button>
+            <div className="form-group"><label>Title *</label><input value={announcement.title} onChange={(e) => setAnnouncement({ ...announcement, title: e.target.value })} required disabled={loading} /></div>
+            <div className="form-group"><label>Content *</label><textarea value={announcement.content} onChange={(e) => setAnnouncement({ ...announcement, content: e.target.value })} required disabled={loading} rows="4" /></div>
+            <button type="submit" disabled={loading}>{loading ? 'Posting...' : '📢 Post Announcement'}</button>
           </form>
 
-          {/* Existing Announcements */}
           {existingAnnouncements.length > 0 && (
             <div style={{ marginTop: '2rem' }}>
               <h3>Existing Announcements</h3>
               <div className="section-grid">
                 {existingAnnouncements.map(a => (
                   <div key={a.id} className="small-card" style={{ position: 'relative' }}>
-                    <strong>{a.title}</strong>
-                    <p>{a.content}</p>
-                    <small>{format(new Date(a.created_at), 'MMM dd, yyyy')}</small>
-                    <button
-                      onClick={() => deleteAnnouncement(a.id)}
-                      style={{
-                        position: 'absolute',
-                        top: '10px',
-                        right: '10px',
-                        background: '#8B1A1A',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '4px',
-                        padding: '4px 10px',
-                        cursor: 'pointer',
-                        fontSize: '12px'
-                      }}
-                    >
-                      ✕ Delete
-                    </button>
+                    <strong>{a.title}</strong><p>{a.content}</p><small>{format(new Date(a.created_at), 'MMM dd, yyyy')}</small>
+                    <button onClick={() => deleteAnnouncement(a.id)} style={{ position: 'absolute', top: '10px', right: '10px', background: '#8B1A1A', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', fontSize: '12px' }}>✕ Delete</button>
                   </div>
                 ))}
               </div>
@@ -181,66 +120,20 @@ export default function PostAnnouncement() {
       {tab === 'event' && (
         <>
           <form onSubmit={postEvent} className="post-form">
-            <div className="form-group">
-              <label>Event Title *</label>
-              <input
-                value={event.title}
-                onChange={(e) => setEvent({ ...event, title: e.target.value })}
-                required
-                disabled={loading}
-              />
-            </div>
-            <div className="form-group">
-              <label>Date *</label>
-              <input
-                type="date"
-                value={event.date}
-                onChange={(e) => setEvent({ ...event, date: e.target.value })}
-                required
-                disabled={loading}
-              />
-            </div>
-            <div className="form-group">
-              <label>Time *</label>
-              <input
-                type="time"
-                value={event.time}
-                onChange={(e) => setEvent({ ...event, time: e.target.value })}
-                required
-                disabled={loading}
-              />
-            </div>
-            <button type="submit" disabled={loading}>
-              {loading ? 'Posting...' : '📅 Post Event'}
-            </button>
+            <div className="form-group"><label>Event Title *</label><input value={event.title} onChange={(e) => setEvent({ ...event, title: e.target.value })} required disabled={loading} /></div>
+            <div className="form-group"><label>Date *</label><input type="date" value={event.date} onChange={(e) => setEvent({ ...event, date: e.target.value })} required disabled={loading} /></div>
+            <div className="form-group"><label>Time *</label><input type="time" value={event.time} onChange={(e) => setEvent({ ...event, time: e.target.value })} required disabled={loading} /></div>
+            <button type="submit" disabled={loading}>{loading ? 'Posting...' : '📅 Post Event'}</button>
           </form>
 
-          {/* Existing Events */}
           {existingEvents.length > 0 && (
             <div style={{ marginTop: '2rem' }}>
               <h3>Existing Events</h3>
               <div className="section-grid">
                 {existingEvents.map(e => (
                   <div key={e.id} className="small-card" style={{ position: 'relative' }}>
-                    <strong>{e.title}</strong>
-                    <p>{e.date} · {e.time}</p>
-                    <button
-                      onClick={() => deleteEvent(e.id)}
-                      style={{
-                        position: 'absolute',
-                        top: '10px',
-                        right: '10px',
-                        background: '#8B1A1A',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '4px',
-                        padding: '4px 10px',
-                        cursor: 'pointer',
-                        fontSize: '12px'
-                      }}
-                    >
-                      ✕ Delete
-                    </button>
+                    <strong>{e.title}</strong><p>{e.date} · {e.time}</p>
+                    <button onClick={() => deleteEvent(e.id)} style={{ position: 'absolute', top: '10px', right: '10px', background: '#8B1A1A', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', fontSize: '12px' }}>✕ Delete</button>
                   </div>
                 ))}
               </div>

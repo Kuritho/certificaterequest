@@ -1,4 +1,3 @@
-// src/pages/admin/ReviewRequests.js
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { dataService } from '../../services/dataService';
@@ -33,7 +32,6 @@ export default function ReviewRequests() {
     }
   };
 
-  // Update a single request
   const updateRequest = async (id, updates) => {
     try {
       const { data, error } = await supabase
@@ -52,11 +50,8 @@ export default function ReviewRequests() {
     }
   };
 
-  // Delete a single request
   const handleDeleteRequest = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this request? This action cannot be undone.')) {
-      return;
-    }
+    if (!window.confirm('Are you sure you want to delete this request?')) return;
     
     setDeleteLoading(true);
     try {
@@ -71,16 +66,13 @@ export default function ReviewRequests() {
     }
   };
 
-  // Bulk delete selected requests
   const handleBulkDelete = async () => {
     if (selectedRequests.length === 0) {
       alert('Please select at least one request to delete.');
       return;
     }
     
-    if (!window.confirm(`Are you sure you want to delete ${selectedRequests.length} selected request(s)? This action cannot be undone.`)) {
-      return;
-    }
+    if (!window.confirm(`Are you sure you want to delete ${selectedRequests.length} selected request(s)?`)) return;
     
     setDeleteLoading(true);
     try {
@@ -96,20 +88,14 @@ export default function ReviewRequests() {
     }
   };
 
-  // Delete all requests
   const handleDeleteAll = async () => {
     if (requests.length === 0) {
       alert('No requests to delete.');
       return;
     }
     
-    if (!window.confirm(`⚠️ Are you sure you want to delete ALL ${requests.length} requests? This action cannot be undone!`)) {
-      return;
-    }
-    
-    if (!window.confirm(`⚠️⚠️ FINAL CONFIRMATION: Delete all ${requests.length} requests?`)) {
-      return;
-    }
+    if (!window.confirm(`⚠️ Are you sure you want to delete ALL ${requests.length} requests?`)) return;
+    if (!window.confirm(`⚠️⚠️ FINAL CONFIRMATION: Delete all ${requests.length} requests?`)) return;
     
     setDeleteLoading(true);
     try {
@@ -125,16 +111,12 @@ export default function ReviewRequests() {
     }
   };
 
-  // Toggle selection for a request
   const toggleSelection = (id) => {
     setSelectedRequests(prev => 
-      prev.includes(id) 
-        ? prev.filter(item => item !== id)
-        : [...prev, id]
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
   };
 
-  // Select all requests
   const selectAll = () => {
     if (selectedRequests.length === requests.length) {
       setSelectedRequests([]);
@@ -166,10 +148,7 @@ export default function ReviewRequests() {
     try {
       await supabase
         .from('notifications')
-        .insert([{
-          user_id: req.user_id,
-          message: message
-        }]);
+        .insert([{ user_id: req.user_id, message: message }]);
       alert(`📧 Notification sent to user: "${message}"`);
     } catch (error) {
       console.error('Error sending notification:', error);
@@ -198,87 +177,23 @@ export default function ReviewRequests() {
           color: statusMessage.includes('✅') ? '#27ae60' : '#8B1A1A'
         }}>
           {statusMessage}
-          <button 
-            onClick={() => setStatusMessage('')}
-            style={{ marginLeft: '10px', background: 'none', border: 'none', cursor: 'pointer' }}
-          >
-            ✕
-          </button>
+          <button onClick={() => setStatusMessage('')} style={{ marginLeft: '10px', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
         </div>
       )}
 
-      {/* Bulk Action Buttons */}
       {requests.length > 0 && (
-        <div style={{ 
-          display: 'flex', 
-          gap: '10px', 
-          flexWrap: 'wrap',
-          marginBottom: '20px',
-          padding: '15px',
-          background: '#f5f0e6',
-          borderRadius: '8px',
-          alignItems: 'center'
-        }}>
-          <span style={{ fontWeight: '600', color: '#4A2810' }}>
-            {selectedRequests.length} selected
-          </span>
-          <button
-            onClick={selectAll}
-            style={{
-              padding: '6px 15px',
-              background: '#4A2810',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px', padding: '15px', background: '#f5f0e6', borderRadius: '8px', alignItems: 'center' }}>
+          <span style={{ fontWeight: '600', color: '#4A2810' }}>{selectedRequests.length} selected</span>
+          <button onClick={selectAll} style={{ padding: '6px 15px', background: '#4A2810', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
             {selectedRequests.length === requests.length ? 'Deselect All' : 'Select All'}
           </button>
-          <button
-            onClick={handleBulkDelete}
-            disabled={selectedRequests.length === 0 || deleteLoading}
-            style={{
-              padding: '6px 15px',
-              background: '#8B1A1A',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: selectedRequests.length === 0 || deleteLoading ? 'not-allowed' : 'pointer',
-              opacity: selectedRequests.length === 0 || deleteLoading ? 0.5 : 1
-            }}
-          >
+          <button onClick={handleBulkDelete} disabled={selectedRequests.length === 0 || deleteLoading} style={{ padding: '6px 15px', background: '#8B1A1A', color: '#fff', border: 'none', borderRadius: '4px', cursor: selectedRequests.length === 0 || deleteLoading ? 'not-allowed' : 'pointer', opacity: selectedRequests.length === 0 || deleteLoading ? 0.5 : 1 }}>
             🗑️ Delete Selected ({selectedRequests.length})
           </button>
-          <button
-            onClick={handleDeleteAll}
-            disabled={deleteLoading}
-            style={{
-              padding: '6px 15px',
-              background: '#8B1A1A',
-              color: '#fff',
-              border: '2px solid #8B1A1A',
-              borderRadius: '4px',
-              cursor: deleteLoading ? 'not-allowed' : 'pointer',
-              opacity: deleteLoading ? 0.5 : 1
-            }}
-          >
+          <button onClick={handleDeleteAll} disabled={deleteLoading} style={{ padding: '6px 15px', background: '#8B1A1A', color: '#fff', border: '2px solid #8B1A1A', borderRadius: '4px', cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.5 : 1 }}>
             ⚠️ Delete All
           </button>
-          <button
-            onClick={loadRequests}
-            style={{
-              padding: '6px 15px',
-              background: '#C5A55A',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              marginLeft: 'auto'
-            }}
-          >
-            🔄 Refresh
-          </button>
+          <button onClick={loadRequests} style={{ padding: '6px 15px', background: '#C5A55A', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', marginLeft: 'auto' }}>🔄 Refresh</button>
         </div>
       )}
 
@@ -288,36 +203,14 @@ export default function ReviewRequests() {
         <table>
           <thead>
             <tr>
-              <th style={{ width: '30px' }}>
-                <input 
-                  type="checkbox" 
-                  checked={selectedRequests.length === requests.length && requests.length > 0}
-                  onChange={selectAll}
-                />
-              </th>
-              <th>ID</th>
-              <th>Requestor</th>
-              <th>Certificate</th>
-              <th>Email</th>
-              <th>DOB</th>
-              <th>Appointment</th>
-              <th>Payment</th>
-              <th>Files</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th style={{ width: '30px' }}><input type="checkbox" checked={selectedRequests.length === requests.length && requests.length > 0} onChange={selectAll} /></th>
+              <th>ID</th><th>Requestor</th><th>Certificate</th><th>Email</th><th>DOB</th><th>Appointment</th><th>Payment</th><th>Files</th><th>Status</th><th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {requests.map(req => (
               <tr key={req.id}>
-                <td>
-                  <input 
-                    type="checkbox" 
-                    checked={selectedRequests.includes(req.id)}
-                    onChange={() => toggleSelection(req.id)}
-                    disabled={deleteLoading}
-                  />
-                </td>
+                <td><input type="checkbox" checked={selectedRequests.includes(req.id)} onChange={() => toggleSelection(req.id)} disabled={deleteLoading} /></td>
                 <td>#{req.id}</td>
                 <td>{req.user_name}</td>
                 <td>{req.certificate_type}</td>
@@ -327,58 +220,29 @@ export default function ReviewRequests() {
                 <td>
                   {req.payment_method?.toUpperCase()}
                   {req.payment_method === 'gcash' && req.payment_status && (
-                    <div className={req.payment_status === 'verified' ? 'verified' : 'unverified'}>
-                      {req.payment_status}
-                    </div>
+                    <div className={req.payment_status === 'verified' ? 'verified' : 'unverified'}>{req.payment_status}</div>
                   )}
                 </td>
                 <td>
-                  {req.payment_method === 'gcash' && req.receipt_data ? (
-                    <button type="button" className="link-button" onClick={() => setPreview({ 
-                      title: req.receipt_name || 'Receipt', 
-                      file: req.receipt_data, 
-                      type: req.receipt_type 
-                    })}>
+                  {req.payment_method === 'gcash' && req.receipt_data && (
+                    <button type="button" className="link-button" onClick={() => setPreview({ title: req.receipt_name || 'Receipt', file: req.receipt_data, type: req.receipt_type })}>
                       {req.receipt_name || 'Receipt'}
                     </button>
-                  ) : null}
-                  {req.requirements_data ? (
-                    <button type="button" className="link-button" onClick={() => setPreview({ 
-                      title: req.requirements_name || 'Requirements', 
-                      file: req.requirements_data, 
-                      type: req.requirements_type 
-                    })}>
+                  )}
+                  {req.requirements_data && (
+                    <button type="button" className="link-button" onClick={() => setPreview({ title: req.requirements_name || 'Requirements', file: req.requirements_data, type: req.requirements_type })}>
                       {req.requirements_name || 'Requirements'}
                     </button>
-                  ) : null}
+                  )}
                 </td>
                 <td><span className={`status-badge status-${req.status}`}>{req.status}</span></td>
                 <td className="request-actions">
-                  {req.payment_method === 'gcash' && req.payment_status !== 'verified' && (
-                    <button onClick={() => verifyPayment(req.id)}>Verify</button>
-                  )}
+                  {req.payment_method === 'gcash' && req.payment_status !== 'verified' && <button onClick={() => verifyPayment(req.id)}>Verify</button>}
                   <select value={req.status} onChange={(e) => updateStatus(req.id, e.target.value)}>
-                    <option value="pending">Pending</option>
-                    <option value="processing">Processing</option>
-                    <option value="ready">Ready for Pickup</option>
-                    <option value="completed">Completed</option>
-                    <option value="rejected">Rejected</option>
+                    <option value="pending">Pending</option><option value="processing">Processing</option><option value="ready">Ready for Pickup</option><option value="completed">Completed</option><option value="rejected">Rejected</option>
                   </select>
                   <button onClick={() => sendManualEmail(req.id)}>Email</button>
-                  <button 
-                    onClick={() => handleDeleteRequest(req.id)}
-                    disabled={deleteLoading}
-                    style={{
-                      background: '#8B1A1A',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '4px',
-                      padding: '4px 8px',
-                      cursor: deleteLoading ? 'not-allowed' : 'pointer'
-                    }}
-                  >
-                    🗑️
-                  </button>
+                  <button onClick={() => handleDeleteRequest(req.id)} disabled={deleteLoading} style={{ background: '#8B1A1A', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: deleteLoading ? 'not-allowed' : 'pointer' }}>🗑️</button>
                 </td>
               </tr>
             ))}
@@ -396,11 +260,7 @@ export default function ReviewRequests() {
             {preview.type?.startsWith('image/') ? (
               <img src={preview.file} alt={preview.title} className="preview-image" />
             ) : (
-              <div className="preview-file">
-                <p>{preview.title}</p>
-                <p>File type: {preview.type || 'Unknown'}</p>
-                <p>Preview not available for this file type.</p>
-              </div>
+              <div className="preview-file"><p>{preview.title}</p><p>File type: {preview.type || 'Unknown'}</p><p>Preview not available for this file type.</p></div>
             )}
           </div>
         </div>
