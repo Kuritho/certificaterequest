@@ -1,5 +1,7 @@
+// src/pages/user/Dashboard.js
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
 import { format } from 'date-fns';
 
 export default function UserDashboard() {
@@ -8,17 +10,104 @@ export default function UserDashboard() {
   const [events, setEvents] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const ann = JSON.parse(localStorage.getItem('sacramental_announcements') || '[]');
-    const ev = JSON.parse(localStorage.getItem('sacramental_events') || '[]');
-    const allReq = JSON.parse(localStorage.getItem('sacramental_requests') || '[]');
-    const notif = JSON.parse(localStorage.getItem('sacramental_notifications') || '[]');
-    setAnnouncements(ann);
-    setEvents(ev);
-    setMyRequests(allReq.filter(r => r.userId === user.id));
-    setNotifications(notif.filter(n => n.userId === user.id));
-  }, [user.id]);
+    if (user?.id) {
+      loadData();
+    } else {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('Loading dashboard data for user:', user.id);
+      
+      // Load all data in parallel
+      const [ann, ev, req, notif] = await Promise.all([
+        supabase.from('announcements').select('*').order('created_at', { ascending: false }),
+        supabase.from('events').select('*').order('date', { ascending: true }),
+        supabase.from('certificate_requests').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
+      ]);
+
+      if (ann.error) throw new Error('Failed to load announcements: ' + ann.error.message);
+      if (ev.error) throw new Error('Failed to load events: ' + ev.error.message);
+      if (req.error) throw new Error('Failed to load requests: ' + req.error.message);
+      if (notif.error) throw new Error('Failed to load notifications: ' + notif.error.message);
+
+      setAnnouncements(ann.data || []);
+      setEvents(ev.data || []);
+      setMyRequests(req.data || []);
+      setNotifications(notif.data || []);
+      
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      setError(error.message);
+      // Use fallback data
+      setAnnouncements([]);
+      setEvents([]);
+      setMyRequests([]);
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '50vh',
+        flexDirection: 'column'
+      }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #C5A55A',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }}></div>
+        <p style={{ marginTop: '15px', color: '#4A2810' }}>Loading dashboard...</p>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <p style={{ color: '#8B1A1A' }}>Error loading dashboard: {error}</p>
+        <button 
+          onClick={loadData}
+          style={{
+            marginTop: '10px',
+            padding: '8px 20px',
+            background: '#C5A55A',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer'
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   const pendingCount = myRequests.filter(r => r.status !== 'completed' && r.status !== 'rejected').length;
 
@@ -26,7 +115,7 @@ export default function UserDashboard() {
     <div className="dashboard">
       <div className="page-header">
         <div>
-          <h2>Welcome, {user.name}!</h2>
+          <h2>Welcome, {user?.name || 'User'}!</h2>
           <p className="page-subtitle">Check your request progress, parish updates, and upcoming events at a glance.</p>
         </div>
       </div>
@@ -61,7 +150,7 @@ export default function UserDashboard() {
             <article key={a.id} className="dashboard-card small-card">
               <strong>{a.title}</strong>
               <p>{a.content}</p>
-              <small>{format(new Date(a.date), 'MMM dd, yyyy')}</small>
+              <small>{format(new Date(a.created_at), 'MMM dd, yyyy')}</small>
             </article>
           ))}
         </div>
@@ -90,9 +179,10 @@ export default function UserDashboard() {
         </div>
         <div className="section-grid">
           {notifications.length === 0 && <p>No notifications yet.</p>}
-          {notifications.slice(-3).map((n, idx) => (
-            <article key={idx} className="dashboard-card small-card">
+          {notifications.slice(0, 3).map((n) => (
+            <article key={n.id} className="dashboard-card small-card">
               <p>{n.message}</p>
+              <small>{format(new Date(n.created_at), 'MMM dd, yyyy HH:mm')}</small>
             </article>
           ))}
         </div>
