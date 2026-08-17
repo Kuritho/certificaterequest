@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import churchLogo from '../assets/images/church-logo.jpg';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -41,6 +42,25 @@ export default function Login() {
   return (
     <div className="auth-container">
       <form onSubmit={handleSubmit} className="auth-form">
+        {/* Church Logo above form */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          marginBottom: '1.5rem' 
+        }}>
+          <img 
+            src={churchLogo} 
+            alt="Church Logo" 
+            style={{ 
+              width: '80px', 
+              height: '80px', 
+              borderRadius: '50%',
+              objectFit: 'cover',
+              boxShadow: '0 4px 15px rgba(0, 120, 215, 0.3)'
+            }} 
+          />
+        </div>
+
         <h2>Welcome Back</h2>
         <p className="subtitle">Sign in to access sacramental records</p>
 

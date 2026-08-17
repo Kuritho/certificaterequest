@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { FiLogOut, FiHome, FiFileText, FiCheckCircle, FiBarChart2 } from 'react-icons/fi';
 import { FaChurch } from 'react-icons/fa';
+import churchLogo from '../assets/images/church-logo.jpg';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -16,7 +17,18 @@ export default function Navbar() {
     <aside className="sidebar">
       <div className="sidebar-brand">
         <Link to={user?.role === 'admin' ? '/admin/dashboard' : '/user/dashboard'}>
-          <div className="logo-icon">⛪</div>
+          <div className="logo-icon">
+            <img 
+              src={churchLogo} 
+              alt="Church Logo" 
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                borderRadius: '50%',
+                objectFit: 'cover'
+              }} 
+            />
+          </div>
           <div className="brand-copy">
             <strong>Our Lady of Fatima</strong>
             <span>Sacramental Records</span>

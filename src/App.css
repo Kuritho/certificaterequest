@@ -1,49 +1,56 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* ============================================
-   ROOT VARIABLES - CHURCH THEME
+   ROOT VARIABLES - AZURE BLUE THEME | SANS-SERIF
    ============================================ */
 :root {
-  /* Primary Colors */
+  /* Azure Blue Colors */
+  --azure-deep: #003366;
+  --azure-dark: #00509E;
+  --azure-mid: #0078D7;
+  --azure-primary: #0080FF;
+  --azure-bright: #1E90FF;
+  --azure-light: #4DA6FF;
+  --azure-lighter: #80BFFF;
+  --azure-pale: #B3D9FF;
+  --azure-ghost: #E6F2FF;
+  --azure-white: #F5F9FF;
+  
+  /* Accent Gold (kept minimal for highlights) */
   --gold: #C5A55A;
   --gold-dark: #B8943C;
   --gold-light: #E8D5A3;
-  --gold-pale: #F5EDD6;
   
-  /* Red / Burgundy */
-  --burgundy: #8B1A1A;
-  --burgundy-dark: #6B1212;
-  --burgundy-light: #A83232;
+  /* Neutrals - shifted cooler */
+  --text-dark: #1A2A3A;
+  --text-medium: #3A5A7A;
+  --text-light: #6A8AAA;
+  --cream: #ECF3FA;
+  --cream-dark: #D8E6F5;
+  --warm-white: #F5F9FF;
+  --off-white: #FAFCFF;
   
-  /* Browns */
-  --brown-dark: #4A2810;
-  --brown-medium: #7A4A2A;
-  --brown-light: #A67C52;
-  
-  /* Neutrals */
-  --cream: #F5F0E6;
-  --cream-dark: #E8E0D0;
-  --warm-white: #FAF8F4;
-  --off-white: #FDFBF7;
-  
-  /* Accents */
-  --navy: #1A1A2E;
-  --vintage-green: #2D5A27;
-  --rose-gold: #D4A574;
-  
-  /* Gradients */
+  /* Gradients - Azure themed */
+  --gradient-primary: linear-gradient(135deg, #003366 0%, #0078D7 50%, #003366 100%);
+  --gradient-azure: linear-gradient(135deg, #00509E 0%, #1E90FF 50%, #00509E 100%);
+  --gradient-warm: linear-gradient(135deg, #003366 0%, #0078D7 100%);
+  --gradient-cream: linear-gradient(135deg, #ECF3FA 0%, #F5F9FF 100%);
   --gradient-gold: linear-gradient(135deg, #C5A55A 0%, #E8D5A3 50%, #C5A55A 100%);
-  --gradient-warm: linear-gradient(135deg, #8B1A1A 0%, #4A2810 100%);
-  --gradient-cream: linear-gradient(135deg, #F5F0E6 0%, #FAF8F4 100%);
   
   /* Shadows */
-  --shadow-warm: 0 4px 20px rgba(74, 40, 16, 0.15);
+  --shadow-warm: 0 4px 20px rgba(0, 51, 102, 0.15);
+  --shadow-azure: 0 4px 20px rgba(0, 120, 215, 0.3);
+  --shadow-elevated: 0 10px 40px rgba(0, 51, 102, 0.2);
   --shadow-gold: 0 4px 20px rgba(197, 165, 90, 0.3);
-  --shadow-elevated: 0 10px 40px rgba(74, 40, 16, 0.2);
   
   /* Borders */
+  --border-primary: 2px solid #0078D7;
+  --border-light: 1px solid rgba(0, 120, 215, 0.25);
   --border-gold: 2px solid #C5A55A;
-  --border-light: 1px solid rgba(197, 165, 90, 0.3);
+
+  /* ===== FONTS - ALL SANS-SERIF ===== */
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 * {
@@ -53,9 +60,9 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-primary);
   background: var(--warm-white);
-  color: var(--brown-dark);
+  color: var(--text-dark);
   min-height: 100vh;
 }
 
@@ -76,7 +83,7 @@ body {
 }
 
 /* ============================================
-   SIDEBAR / NAVBAR
+   SIDEBAR / NAVBAR - AZURE THEME
    ============================================ */
 .sidebar {
   position: fixed;
@@ -84,7 +91,7 @@ body {
   left: 0;
   width: 280px;
   height: 100vh;
-  background: linear-gradient(180deg, #4A2810 0%, #2A1608 100%);
+  background: linear-gradient(180deg, #003366 0%, #00509E 40%, #0078D7 100%);
   padding: 2rem 1.5rem;
   display: flex;
   flex-direction: column;
@@ -102,13 +109,13 @@ body {
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-  background: var(--gold);
+  background: var(--azure-light);
   border-radius: 2px;
 }
 
 .sidebar-brand {
   padding-bottom: 2rem;
-  border-bottom: 2px solid rgba(197, 165, 90, 0.2);
+  border-bottom: 2px solid rgba(30, 144, 255, 0.3);
   margin-bottom: 2rem;
 }
 
@@ -121,15 +128,18 @@ body {
 
 .logo-icon {
   font-size: 2.5rem;
-  background: var(--gradient-gold);
+  background: var(--gradient-azure);
   width: 60px;
   height: 60px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(197, 165, 90, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 120, 215, 0.4);
   flex-shrink: 0;
+  font-family: var(--font-primary);
+  font-weight: 700;
+  color: white;
 }
 
 .brand-copy {
@@ -138,17 +148,19 @@ body {
 }
 
 .brand-copy strong {
-  color: var(--gold-light);
-  font-family: 'Playfair Display', serif;
+  color: var(--azure-lighter);
+  font-family: var(--font-heading);
   font-size: 1.1rem;
   line-height: 1.3;
+  font-weight: 700;
 }
 
 .brand-copy span {
-  color: rgba(197, 165, 90, 0.7);
+  color: rgba(77, 166, 255, 0.7);
   font-size: 0.7rem;
   letter-spacing: 1px;
   text-transform: uppercase;
+  font-weight: 400;
 }
 
 .sidebar-links {
@@ -165,11 +177,13 @@ body {
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   border-radius: 8px;
-  color: rgba(245, 240, 230, 0.7);
+  color: rgba(236, 243, 250, 0.7);
   text-decoration: none;
   transition: all 0.3s ease;
   font-size: 0.95rem;
   position: relative;
+  font-family: var(--font-primary);
+  font-weight: 500;
 }
 
 .sidebar-links a::before {
@@ -180,14 +194,14 @@ body {
   transform: translateY(-50%);
   width: 3px;
   height: 0;
-  background: var(--gradient-gold);
+  background: var(--gradient-azure);
   border-radius: 0 3px 3px 0;
   transition: height 0.3s ease;
 }
 
 .sidebar-links a:hover {
   color: var(--cream);
-  background: rgba(197, 165, 90, 0.1);
+  background: rgba(30, 144, 255, 0.15);
 }
 
 .sidebar-links a:hover::before {
@@ -195,8 +209,8 @@ body {
 }
 
 .sidebar-links a.active {
-  color: var(--gold-light);
-  background: rgba(197, 165, 90, 0.15);
+  color: var(--azure-lighter);
+  background: rgba(30, 144, 255, 0.2);
 }
 
 .sidebar-links a.active::before {
@@ -204,7 +218,7 @@ body {
 }
 
 .sidebar-footer {
-  border-top: 2px solid rgba(197, 165, 90, 0.2);
+  border-top: 2px solid rgba(30, 144, 255, 0.3);
   padding-top: 1.5rem;
   margin-top: 0.5rem;
 }
@@ -216,12 +230,14 @@ body {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   margin-bottom: 0.75rem;
+  font-family: var(--font-primary);
+  font-weight: 400;
 }
 
 .logout-btn {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: rgba(139, 26, 26, 0.3);
+  background: rgba(139, 26, 26, 0.25);
   color: var(--cream);
   border: 1px solid rgba(139, 26, 26, 0.3);
   border-radius: 8px;
@@ -232,15 +248,17 @@ body {
   gap: 0.5rem;
   font-size: 0.9rem;
   transition: all 0.3s ease;
+  font-family: var(--font-primary);
+  font-weight: 500;
 }
 
 .logout-btn:hover {
-  background: rgba(139, 26, 26, 0.5);
-  border-color: var(--burgundy);
+  background: rgba(139, 26, 26, 0.4);
+  border-color: #8B1A1A;
 }
 
 /* ============================================
-   AUTH PAGES
+   AUTH PAGES - AZURE THEME
    ============================================ */
 .auth-container {
   min-height: 100vh;
@@ -260,8 +278,8 @@ body {
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(ellipse at 20% 50%, rgba(197, 165, 90, 0.05) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 50%, rgba(139, 26, 26, 0.05) 0%, transparent 50%);
+    radial-gradient(ellipse at 20% 50%, rgba(0, 120, 215, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 50%, rgba(0, 51, 102, 0.08) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -277,48 +295,53 @@ body {
 }
 
 .auth-form h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-heading);
   text-align: center;
-  color: var(--brown-dark);
+  color: var(--text-dark);
   font-size: 2rem;
   margin-bottom: 0.5rem;
+  font-weight: 700;
 }
 
 .auth-form .subtitle {
   text-align: center;
-  color: var(--brown-light);
+  color: var(--text-light);
   font-size: 0.9rem;
   margin-bottom: 2rem;
+  font-family: var(--font-primary);
+  font-weight: 400;
 }
 
 .auth-form input {
   width: 100%;
   padding: 0.9rem 1.2rem;
-  border: 2px solid rgba(197, 165, 90, 0.2);
+  border: 2px solid rgba(0, 120, 215, 0.2);
   border-radius: 8px;
   font-size: 1rem;
   transition: all 0.3s ease;
   background: var(--warm-white);
-  color: var(--brown-dark);
+  color: var(--text-dark);
   margin-bottom: 1rem;
+  font-family: var(--font-primary);
+  font-weight: 400;
 }
 
 .auth-form input:focus {
   outline: none;
-  border-color: var(--gold);
-  box-shadow: 0 0 0 4px rgba(197, 165, 90, 0.1);
+  border-color: var(--azure-bright);
+  box-shadow: 0 0 0 4px rgba(0, 120, 215, 0.15);
 }
 
 .auth-form input::placeholder {
-  color: var(--brown-light);
+  color: var(--text-light);
   opacity: 0.6;
 }
 
 .auth-form button {
   width: 100%;
   padding: 0.9rem;
-  background: var(--gradient-gold);
-  color: var(--brown-dark);
+  background: var(--gradient-azure);
+  color: white;
   border: none;
   border-radius: 8px;
   font-size: 1.05rem;
@@ -326,11 +349,12 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 0.5rem;
+  font-family: var(--font-primary);
 }
 
 .auth-form button:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-gold);
+  box-shadow: var(--shadow-azure);
 }
 
 .auth-form button:disabled {
@@ -341,35 +365,38 @@ body {
 
 .auth-form .error {
   background: rgba(139, 26, 26, 0.08);
-  color: var(--burgundy);
+  color: #8B1A1A;
   padding: 0.75rem;
   border-radius: 8px;
   font-size: 0.9rem;
   margin-bottom: 1rem;
   border: 1px solid rgba(139, 26, 26, 0.1);
+  font-family: var(--font-primary);
 }
 
 .auth-form p {
   text-align: center;
   margin-top: 1.5rem;
-  color: var(--brown-light);
+  color: var(--text-light);
   font-size: 0.9rem;
+  font-family: var(--font-primary);
 }
 
 .auth-form a {
-  color: var(--gold-dark);
+  color: var(--azure-mid);
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s ease;
+  font-family: var(--font-primary);
 }
 
 .auth-form a:hover {
-  color: var(--gold);
+  color: var(--azure-bright);
   text-decoration: underline;
 }
 
 /* ============================================
-   DASHBOARD
+   DASHBOARD - AZURE THEME
    ============================================ */
 .dashboard {
   max-width: 1400px;
@@ -384,15 +411,18 @@ body {
 }
 
 .page-header h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-heading);
   font-size: 2.2rem;
-  color: var(--brown-dark);
+  color: var(--text-dark);
+  font-weight: 700;
 }
 
 .page-header .page-subtitle {
-  color: var(--brown-light);
+  color: var(--text-light);
   font-size: 1rem;
   margin-top: 0.25rem;
+  font-family: var(--font-primary);
+  font-weight: 400;
 }
 
 .dashboard-summary {
@@ -420,16 +450,17 @@ body {
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--brown-light);
-  font-weight: 500;
+  color: var(--text-light);
+  font-weight: 600;
+  font-family: var(--font-primary);
 }
 
 .dashboard-card p {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--burgundy);
+  color: var(--azure-mid);
   margin-top: 0.5rem;
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-heading);
 }
 
 .dashboard-section {
@@ -444,17 +475,20 @@ body {
 }
 
 .section-header h3 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-heading);
   font-size: 1.4rem;
-  color: var(--brown-dark);
+  color: var(--text-dark);
+  font-weight: 700;
 }
 
 .section-header span {
-  color: var(--brown-light);
+  color: var(--text-light);
   font-size: 0.85rem;
   background: var(--cream);
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
+  font-family: var(--font-primary);
+  font-weight: 500;
 }
 
 .section-grid {
@@ -477,25 +511,30 @@ body {
 
 .small-card strong {
   display: block;
-  color: var(--brown-dark);
+  color: var(--text-dark);
   font-size: 1rem;
   margin-bottom: 0.25rem;
+  font-family: var(--font-primary);
+  font-weight: 600;
 }
 
 .small-card p {
-  color: var(--brown-light);
+  color: var(--text-light);
   font-size: 0.9rem;
   line-height: 1.6;
+  font-family: var(--font-primary);
+  font-weight: 400;
 }
 
 .small-card small {
-  color: var(--brown-light);
+  color: var(--text-light);
   font-size: 0.75rem;
   opacity: 0.7;
+  font-family: var(--font-primary);
 }
 
 /* ============================================
-   REQUEST PAGE
+   REQUEST PAGE - AZURE THEME
    ============================================ */
 .request-page {
   max-width: 1400px;
@@ -503,10 +542,11 @@ body {
 }
 
 .request-page h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-heading);
   font-size: 2.2rem;
-  color: var(--brown-dark);
+  color: var(--text-dark);
   margin-bottom: 2rem;
+  font-weight: 700;
 }
 
 .request-page-grid {
@@ -535,16 +575,19 @@ body {
 }
 
 .form-section h3 {
-  font-family: 'Playfair Display', serif;
-  color: var(--brown-dark);
+  font-family: var(--font-heading);
+  color: var(--text-dark);
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
+  font-weight: 700;
 }
 
 .form-section > p {
-  color: var(--brown-light);
+  color: var(--text-light);
   font-size: 0.9rem;
   margin-bottom: 1.5rem;
+  font-family: var(--font-primary);
+  font-weight: 400;
 }
 
 .form-group {
@@ -553,29 +596,32 @@ body {
 
 .form-label {
   display: block;
-  font-weight: 500;
-  color: var(--brown-dark);
+  font-weight: 600;
+  color: var(--text-dark);
   margin-bottom: 0.4rem;
   font-size: 0.9rem;
+  font-family: var(--font-primary);
 }
 
 .form-group input,
 .form-group select {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 2px solid rgba(197, 165, 90, 0.2);
+  border: 2px solid rgba(0, 120, 215, 0.2);
   border-radius: 8px;
   font-size: 0.95rem;
   transition: all 0.3s ease;
   background: var(--warm-white);
-  color: var(--brown-dark);
+  color: var(--text-dark);
+  font-family: var(--font-primary);
+  font-weight: 400;
 }
 
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: var(--gold);
-  box-shadow: 0 0 0 4px rgba(197, 165, 90, 0.1);
+  border-color: var(--azure-bright);
+  box-shadow: 0 0 0 4px rgba(0, 120, 215, 0.15);
 }
 
 .form-group input[type="file"] {
@@ -585,9 +631,11 @@ body {
 
 .form-group small {
   display: block;
-  color: var(--brown-light);
+  color: var(--text-light);
   font-size: 0.8rem;
   margin-top: 0.25rem;
+  font-family: var(--font-primary);
+  font-weight: 400;
 }
 
 .form-row {
@@ -607,11 +655,14 @@ body {
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
-  color: var(--brown-dark);
+  color: var(--text-dark);
+  font-family: var(--font-primary);
+  font-weight: 400;
+  font-size: 0.95rem;
 }
 
 .radio-group input[type="radio"] {
-  accent-color: var(--gold);
+  accent-color: var(--azure-bright);
   width: 18px;
   height: 18px;
 }
@@ -619,8 +670,8 @@ body {
 .submit-btn {
   width: 100%;
   padding: 1rem;
-  background: var(--gradient-gold);
-  color: var(--brown-dark);
+  background: var(--gradient-azure);
+  color: white;
   border: none;
   border-radius: 8px;
   font-size: 1.05rem;
@@ -628,11 +679,12 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 1rem;
+  font-family: var(--font-primary);
 }
 
 .submit-btn:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-gold);
+  box-shadow: var(--shadow-azure);
 }
 
 .submit-btn:disabled {
@@ -652,16 +704,19 @@ body {
 }
 
 .request-sidebar h3 {
-  font-family: 'Playfair Display', serif;
-  color: var(--brown-dark);
+  font-family: var(--font-heading);
+  color: var(--text-dark);
   margin-bottom: 1rem;
+  font-weight: 700;
 }
 
 .request-sidebar p {
-  color: var(--brown-light);
+  color: var(--text-light);
   font-size: 0.95rem;
   line-height: 1.6;
   margin-bottom: 1.25rem;
+  font-family: var(--font-primary);
+  font-weight: 400;
 }
 
 .request-sidebar ul {
@@ -672,8 +727,10 @@ body {
 .request-sidebar ul li {
   padding: 0.6rem 0;
   border-bottom: 1px solid var(--border-light);
-  color: var(--brown-dark);
+  color: var(--text-dark);
   font-size: 0.9rem;
+  font-family: var(--font-primary);
+  font-weight: 400;
 }
 
 .request-sidebar ul li:last-child {
@@ -681,11 +738,12 @@ body {
 }
 
 .request-sidebar ul li strong {
-  color: var(--brown-dark);
+  color: var(--text-dark);
+  font-weight: 600;
 }
 
 /* ============================================
-   REVIEW REQUESTS TABLE
+   REVIEW REQUESTS TABLE - AZURE THEME
    ============================================ */
 .review-page {
   max-width: 1400px;
@@ -693,19 +751,22 @@ body {
 }
 
 .review-page h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-heading);
   font-size: 2.2rem;
-  color: var(--brown-dark);
+  color: var(--text-dark);
   margin-bottom: 1.5rem;
+  font-weight: 700;
 }
 
 .status-message {
-  background: rgba(197, 165, 90, 0.1);
-  color: var(--gold-dark);
+  background: rgba(0, 120, 215, 0.1);
+  color: var(--azure-mid);
   padding: 0.75rem 1.25rem;
   border-radius: 8px;
   margin-bottom: 1.5rem;
-  border: 1px solid rgba(197, 165, 90, 0.2);
+  border: 1px solid rgba(0, 120, 215, 0.2);
+  font-family: var(--font-primary);
+  font-weight: 500;
 }
 
 .requests-table {
@@ -720,29 +781,33 @@ body {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+  font-family: var(--font-primary);
 }
 
 .requests-table th {
   text-align: left;
   padding: 0.75rem 1rem;
-  color: var(--brown-light);
+  color: var(--text-light);
   font-weight: 600;
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 2px solid var(--border-light);
   white-space: nowrap;
+  font-family: var(--font-primary);
 }
 
 .requests-table td {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-light);
-  color: var(--brown-dark);
+  color: var(--text-dark);
   vertical-align: middle;
+  font-family: var(--font-primary);
+  font-weight: 400;
 }
 
 .requests-table tr:hover td {
-  background: rgba(197, 165, 90, 0.03);
+  background: rgba(0, 120, 215, 0.04);
 }
 
 .requests-table tr:last-child td {
@@ -756,11 +821,12 @@ body {
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: capitalize;
+  font-family: var(--font-primary);
 }
 
 .status-pending {
-  background: rgba(197, 165, 90, 0.2);
-  color: var(--gold-dark);
+  background: rgba(0, 120, 215, 0.2);
+  color: var(--azure-mid);
 }
 
 .status-processing {
@@ -774,13 +840,13 @@ body {
 }
 
 .status-completed {
-  background: rgba(197, 165, 90, 0.2);
-  color: var(--gold-dark);
+  background: rgba(0, 120, 215, 0.15);
+  color: var(--azure-mid);
 }
 
 .status-rejected {
   background: rgba(139, 26, 26, 0.1);
-  color: var(--burgundy);
+  color: #8B1A1A;
 }
 
 .verified {
@@ -789,7 +855,7 @@ body {
 }
 
 .unverified {
-  color: var(--burgundy);
+  color: #8B1A1A;
   font-weight: 600;
 }
 
@@ -806,24 +872,26 @@ body {
   font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-family: var(--font-primary);
+  font-weight: 500;
 }
 
 .request-actions button:first-child {
-  background: var(--gold);
-  color: var(--brown-dark);
+  background: var(--azure-bright);
+  color: white;
 }
 
 .request-actions button:first-child:hover {
-  background: var(--gold-dark);
+  background: var(--azure-mid);
 }
 
 .request-actions button:last-child {
-  background: rgba(197, 165, 90, 0.1);
-  color: var(--brown-dark);
+  background: rgba(0, 120, 215, 0.1);
+  color: var(--text-dark);
 }
 
 .request-actions button:last-child:hover {
-  background: rgba(197, 165, 90, 0.2);
+  background: rgba(0, 120, 215, 0.2);
 }
 
 .request-actions select {
@@ -832,24 +900,27 @@ body {
   border-radius: 6px;
   font-size: 0.75rem;
   background: var(--warm-white);
-  color: var(--brown-dark);
+  color: var(--text-dark);
+  font-family: var(--font-primary);
 }
 
 .link-button {
   background: none;
   border: none;
-  color: var(--gold-dark);
+  color: var(--azure-mid);
   text-decoration: underline;
   cursor: pointer;
   font-size: 0.8rem;
+  font-family: var(--font-primary);
+  font-weight: 500;
 }
 
 .link-button:hover {
-  color: var(--gold);
+  color: var(--azure-bright);
 }
 
 /* ============================================
-   PREVIEW MODAL
+   PREVIEW MODAL - AZURE THEME
    ============================================ */
 .preview-overlay {
   position: fixed;
@@ -884,9 +955,10 @@ body {
 }
 
 .preview-header strong {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-heading);
   font-size: 1.2rem;
-  color: var(--brown-dark);
+  color: var(--text-dark);
+  font-weight: 700;
 }
 
 .close-modal-btn {
@@ -894,12 +966,13 @@ body {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: var(--brown-light);
+  color: var(--text-light);
   transition: color 0.3s ease;
+  font-family: var(--font-primary);
 }
 
 .close-modal-btn:hover {
-  color: var(--burgundy);
+  color: #8B1A1A;
 }
 
 .preview-image {
@@ -911,11 +984,12 @@ body {
 .preview-file {
   padding: 2rem;
   text-align: center;
-  color: var(--brown-light);
+  color: var(--text-light);
+  font-family: var(--font-primary);
 }
 
 /* ============================================
-   POST ANNOUNCEMENTS
+   POST ANNOUNCEMENTS - AZURE THEME
    ============================================ */
 .post-page {
   max-width: 800px;
@@ -923,10 +997,11 @@ body {
 }
 
 .post-page h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-heading);
   font-size: 2.2rem;
-  color: var(--brown-dark);
+  color: var(--text-dark);
   margin-bottom: 2rem;
+  font-weight: 700;
 }
 
 .tabs {
@@ -947,17 +1022,18 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   background: transparent;
-  color: var(--brown-light);
+  color: var(--text-light);
   font-weight: 500;
+  font-family: var(--font-primary);
 }
 
 .tabs button:hover {
-  color: var(--brown-dark);
+  color: var(--text-dark);
 }
 
 .tabs button.active {
-  background: var(--gold);
-  color: var(--brown-dark);
+  background: var(--azure-bright);
+  color: white;
   box-shadow: var(--shadow-warm);
 }
 
@@ -974,29 +1050,31 @@ body {
 
 .post-form label {
   display: block;
-  font-weight: 500;
-  color: var(--brown-dark);
+  font-weight: 600;
+  color: var(--text-dark);
   margin-bottom: 0.4rem;
+  font-family: var(--font-primary);
 }
 
 .post-form input,
 .post-form textarea {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 2px solid rgba(197, 165, 90, 0.2);
+  border: 2px solid rgba(0, 120, 215, 0.2);
   border-radius: 8px;
   font-size: 0.95rem;
   transition: all 0.3s ease;
   background: var(--warm-white);
-  color: var(--brown-dark);
-  font-family: 'Inter', sans-serif;
+  color: var(--text-dark);
+  font-family: var(--font-primary);
+  font-weight: 400;
 }
 
 .post-form input:focus,
 .post-form textarea:focus {
   outline: none;
-  border-color: var(--gold);
-  box-shadow: 0 0 0 4px rgba(197, 165, 90, 0.1);
+  border-color: var(--azure-bright);
+  box-shadow: 0 0 0 4px rgba(0, 120, 215, 0.15);
 }
 
 .post-form textarea {
@@ -1006,23 +1084,24 @@ body {
 
 .post-form button {
   padding: 0.75rem 2rem;
-  background: var(--gradient-gold);
-  color: var(--brown-dark);
+  background: var(--gradient-azure);
+  color: white;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-family: var(--font-primary);
 }
 
 .post-form button:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-gold);
+  box-shadow: var(--shadow-azure);
 }
 
 /* ============================================
-   REPORTS
+   REPORTS - AZURE THEME
    ============================================ */
 .reports-page {
   max-width: 1400px;
@@ -1030,10 +1109,11 @@ body {
 }
 
 .reports-page h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-heading);
   font-size: 2.2rem;
-  color: var(--brown-dark);
+  color: var(--text-dark);
   margin-bottom: 1.5rem;
+  font-weight: 700;
 }
 
 .report-filters {
@@ -1051,35 +1131,38 @@ body {
 .report-filters select,
 .report-filters input {
   padding: 0.6rem 1rem;
-  border: 2px solid rgba(197, 165, 90, 0.2);
+  border: 2px solid rgba(0, 120, 215, 0.2);
   border-radius: 8px;
   font-size: 0.9rem;
   background: var(--warm-white);
-  color: var(--brown-dark);
+  color: var(--text-dark);
   min-width: 150px;
+  font-family: var(--font-primary);
+  font-weight: 400;
 }
 
 .report-filters select:focus,
 .report-filters input:focus {
   outline: none;
-  border-color: var(--gold);
+  border-color: var(--azure-bright);
 }
 
 .report-filters button {
   padding: 0.6rem 1.5rem;
-  background: var(--gradient-gold);
-  color: var(--brown-dark);
+  background: var(--gradient-azure);
+  color: white;
   border: none;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   margin-left: auto;
+  font-family: var(--font-primary);
 }
 
 .report-filters button:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-gold);
+  box-shadow: var(--shadow-azure);
 }
 
 .report-summary {
@@ -1087,8 +1170,9 @@ body {
   padding: 1rem 1.5rem;
   border-radius: 8px;
   margin-bottom: 1.5rem;
-  color: var(--brown-dark);
+  color: var(--text-dark);
   font-weight: 500;
+  font-family: var(--font-primary);
 }
 
 .report-table {
@@ -1098,26 +1182,30 @@ body {
   border: 1px solid var(--border-light);
   border-collapse: collapse;
   overflow: hidden;
+  font-family: var(--font-primary);
 }
 
 .report-table th {
   text-align: left;
   padding: 0.75rem 1rem;
   background: var(--cream);
-  color: var(--brown-dark);
+  color: var(--text-dark);
   font-weight: 600;
   font-size: 0.85rem;
   border-bottom: 2px solid var(--border-light);
+  font-family: var(--font-primary);
 }
 
 .report-table td {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-light);
-  color: var(--brown-dark);
+  color: var(--text-dark);
+  font-family: var(--font-primary);
+  font-weight: 400;
 }
 
 .report-table tr:hover td {
-  background: rgba(197, 165, 90, 0.03);
+  background: rgba(0, 120, 215, 0.04);
 }
 
 /* ============================================
