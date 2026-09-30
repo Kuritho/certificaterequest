@@ -162,7 +162,7 @@ export default function Register() {
             disabled={loading}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
-            {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+            {showPassword ? <EyeIcon /> : <EyeOffIcon />}
           </button>
         </div>
 
@@ -184,7 +184,7 @@ export default function Register() {
             disabled={loading}
             aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
           >
-            {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+            {showConfirmPassword ? <EyeIcon /> : <EyeOffIcon />}
           </button>
         </div>
 
