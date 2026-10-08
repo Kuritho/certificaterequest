@@ -3,12 +3,15 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import ConfirmModal from '../../components/ConfirmModal';
 
 export default function RequestCertificate() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -32,7 +35,7 @@ export default function RequestCertificate() {
   // Set form values when user is available
   useEffect(() => {
     if (user) {
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
         fullName: user.name || '',
         email: user.email || '',
@@ -40,12 +43,13 @@ export default function RequestCertificate() {
     }
   }, [user]);
 
-  const readFileData = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+  const readFileData = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
 
   const handleChange = async (e) => {
     const { name, value, type, files } = e.target;
@@ -61,21 +65,50 @@ export default function RequestCertificate() {
       }));
       return;
     }
-
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  // Step 1: User clicks "Submit Request" → open the confirmation modal
+  const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
+
+    if (!user?.id) {
+      setError('You are not logged in. Please login again.');
+      setTimeout(() => navigate('/login'), 2000);
+      return;
+    }
+
+    // Basic sanity check
+    if (!form.fullName || !form.email || !form.dob || !form.appointmentDate || !form.appointmentTime) {
+      setError('Please fill in all required fields before submitting.');
+      return;
+    }
+
+    if (form.paymentMethod === 'gcash' && !form.receiptData) {
+      setError('Please upload your GCash receipt.');
+      return;
+    }
+
+    if (!form.requirementsData) {
+      setError('Please upload the required documents.');
+      return;
+    }
+
+    // Open the confirmation modal
+    setShowConfirm(true);
+  };
+
+  // Step 2: User confirms inside the modal → actually submit to Supabase
+  const confirmSubmit = async () => {
     setLoading(true);
+    setError('');
 
     try {
-      // Check if user is authenticated
       if (!user?.id) {
         setError('You are not logged in. Please login again.');
-        setTimeout(() => navigate('/login'), 2000);
         setLoading(false);
+        setShowConfirm(false);
         return;
       }
 
@@ -100,10 +133,9 @@ export default function RequestCertificate() {
         receipt_type: form.receiptType,
         receipt_name: form.receiptName,
         status: 'pending',
-        payment_status: form.paymentMethod === 'gcash' ? 'unverified' : 'verified'
+        payment_status: form.paymentMethod === 'gcash' ? 'unverified' : 'verified',
       };
 
-      // Insert the request
       const { data, error: insertError } = await supabase
         .from('certificate_requests')
         .insert([requestData])
@@ -117,19 +149,24 @@ export default function RequestCertificate() {
       console.log('Request submitted:', data);
 
       // Create notification
-      await supabase
-        .from('notifications')
-        .insert([{
+      await supabase.from('notifications').insert([
+        {
           user_id: user.id,
-          message: `Your request for ${form.certificateType} certificate has been submitted. Awaiting review.`
-        }]);
+          message: `Your request for ${form.certificateType} certificate has been submitted. Awaiting review.`,
+        },
+      ]);
 
-      alert('✅ Request submitted successfully!');
-      navigate('/user/dashboard');
-      
-    } catch (error) {
-      console.error('Error submitting request:', error);
-      setError(error.message || 'An unexpected error occurred');
+      // Show success state briefly, then navigate
+      setShowConfirm(false);
+      setSubmitted(true);
+
+      setTimeout(() => {
+        navigate('/user/dashboard');
+      }, 1800);
+    } catch (err) {
+      console.error('Error submitting request:', err);
+      setError(err.message || 'An unexpected error occurred');
+      setShowConfirm(false);
     } finally {
       setLoading(false);
     }
@@ -144,20 +181,45 @@ export default function RequestCertificate() {
     );
   }
 
+  // Success screen
+  if (submitted) {
+    return (
+      <div className="request-page">
+        <div className="request-success">
+          <div className="request-success-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+          <h2>Request Submitted!</h2>
+          <p>
+            Your <strong>{form.certificateType}</strong> certificate request has been received. The parish
+            office will review it shortly. You'll be notified by email when your request status updates.
+          </p>
+          <p className="request-success-redirect">Redirecting to your dashboard…</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="request-page">
       <h2>Request a Certificate</h2>
+
       {error && (
-        <div style={{ 
-          color: '#8B1A1A', 
-          padding: '15px', 
-          background: '#FDE8E8', 
-          borderRadius: '8px', 
-          marginBottom: '20px',
-          border: '1px solid #8B1A1A'
-        }}>
+        <div
+          style={{
+            color: '#8B1A1A',
+            padding: '15px',
+            background: '#FDE8E8',
+            borderRadius: '8px',
+            marginBottom: '20px',
+            border: '1px solid #8B1A1A',
+          }}
+        >
           ❌ {error}
-          <button 
+          <button
             onClick={() => setError('')}
             style={{ marginLeft: '10px', background: 'none', border: 'none', cursor: 'pointer' }}
           >
@@ -165,9 +227,9 @@ export default function RequestCertificate() {
           </button>
         </div>
       )}
+
       <div className="request-page-grid">
         <form onSubmit={handleSubmit} className="request-form">
-          {/* Form sections - same as before */}
           <div className="form-section">
             <h3>Personal Details</h3>
             <p>Provide the details below so we can locate your records and process your request quickly.</p>
@@ -268,6 +330,156 @@ export default function RequestCertificate() {
           </ul>
           <p><strong>Need help?</strong> Visit the parish office or contact the administrator after login.</p>
         </aside>
+      </div>
+
+      {/* ===== REVIEW-BEFORE-SUBMIT CONFIRMATION MODAL ===== */}
+      <ReviewConfirmModal
+        isOpen={showConfirm}
+        form={form}
+        loading={loading}
+        onCancel={() => setShowConfirm(false)}
+        onConfirm={confirmSubmit}
+      />
+    </div>
+  );
+}
+
+/* ===== REVIEW CONFIRMATION MODAL (custom layout for request summary) ===== */
+function ReviewConfirmModal({ isOpen, form, loading, onCancel, onConfirm }) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKey = (e) => {
+      if (e.key === 'Escape' && !loading) onCancel();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [isOpen, loading, onCancel]);
+
+  useEffect(() => {
+    if (isOpen) {
+      const original = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = original;
+      };
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const fileSizeLabel = (dataUrl) => {
+    if (!dataUrl) return '—';
+    const base64Length = dataUrl.split(',')[1]?.length || 0;
+    const bytes = (base64Length * 3) / 4;
+    if (bytes < 1024) return `${bytes.toFixed(0)} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  return (
+    <div className="confirm-overlay" onClick={() => !loading && onCancel()}>
+      <div
+        className="confirm-modal confirm-primary request-review-modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
+        <div className="confirm-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="9" y1="15" x2="15" y2="15" />
+          </svg>
+        </div>
+
+        <h3 className="confirm-title">Review your request</h3>
+        <p className="confirm-message">
+          Please verify the details below. Once submitted, our parish office will process your request.
+        </p>
+
+        <div className="request-review-body">
+          <div className="request-review-grid">
+            <div className="request-review-item">
+              <span className="request-review-label">Full Name</span>
+              <span className="request-review-value">{form.fullName || '—'}</span>
+            </div>
+            <div className="request-review-item">
+              <span className="request-review-label">Email</span>
+              <span className="request-review-value">{form.email || '—'}</span>
+            </div>
+            <div className="request-review-item">
+              <span className="request-review-label">Certificate Type</span>
+              <span className="request-review-value">{form.certificateType}</span>
+            </div>
+            <div className="request-review-item">
+              <span className="request-review-label">Date of Birth</span>
+              <span className="request-review-value">{form.dob || '—'}</span>
+            </div>
+            {form.fatherName && (
+              <div className="request-review-item">
+                <span className="request-review-label">Father's Name</span>
+                <span className="request-review-value">{form.fatherName}</span>
+              </div>
+            )}
+            {form.motherName && (
+              <div className="request-review-item">
+                <span className="request-review-label">Mother's Name</span>
+                <span className="request-review-value">{form.motherName}</span>
+              </div>
+            )}
+            <div className="request-review-item">
+              <span className="request-review-label">Appointment</span>
+              <span className="request-review-value">
+                {form.appointmentDate} at {form.appointmentTime}
+              </span>
+            </div>
+            <div className="request-review-item">
+              <span className="request-review-label">Payment Method</span>
+              <span className="request-review-value">
+                {form.paymentMethod === 'gcash' ? 'GCash (Online)' : 'Cash on Pickup'}
+              </span>
+            </div>
+          </div>
+
+          <div className="request-review-files">
+            <div className="request-review-file">
+              <span className="request-review-file-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                  <polyline points="13 2 13 9 20 9" />
+                </svg>
+              </span>
+              <div className="request-review-file-body">
+                <span className="request-review-file-name">{form.requirementsName || 'Requirements'}</span>
+                <span className="request-review-file-meta">{fileSizeLabel(form.requirementsData)}</span>
+              </div>
+            </div>
+
+            {form.paymentMethod === 'gcash' && form.receiptData && (
+              <div className="request-review-file">
+                <span className="request-review-file-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="16" rx="2" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                </span>
+                <div className="request-review-file-body">
+                  <span className="request-review-file-name">{form.receiptName || 'GCash Receipt'}</span>
+                  <span className="request-review-file-meta">{fileSizeLabel(form.receiptData)}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="confirm-actions">
+          <button className="confirm-btn confirm-cancel" onClick={onCancel} disabled={loading} type="button">
+            Go Back & Edit
+          </button>
+          <button className="confirm-btn confirm-primary" onClick={onConfirm} disabled={loading} type="button">
+            {loading ? 'Submitting…' : 'Confirm & Submit'}
+          </button>
+        </div>
       </div>
     </div>
   );

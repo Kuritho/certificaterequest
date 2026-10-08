@@ -1,7 +1,9 @@
+// src/pages/admin/Reports.js
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { dataService } from '../../services/dataService';
 import { format } from 'date-fns';
+import ConfirmModal from '../../components/ConfirmModal';
 
 export default function Reports() {
   const [requests, setRequests] = useState([]);
@@ -9,6 +11,13 @@ export default function Reports() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({ type: '', status: '', dateFrom: '', dateTo: '' });
   const [selectedReports, setSelectedReports] = useState([]);
+
+  const [confirm, setConfirm] = useState({
+    open: false, title: '', message: '', confirmLabel: 'Confirm',
+    variant: 'danger', icon: 'warning', loading: false, onConfirm: null,
+  });
+  const openConfirm = (config) => setConfirm({ open: true, loading: false, ...config });
+  const closeConfirm = () => setConfirm((prev) => ({ ...prev, open: false, loading: false }));
 
   useEffect(() => {
     loadRequests();
@@ -21,7 +30,6 @@ export default function Reports() {
         .from('certificate_requests')
         .select('*')
         .order('created_at', { ascending: false });
-      
       if (error) throw error;
       setRequests(data || []);
       setFiltered(data || []);
@@ -35,17 +43,17 @@ export default function Reports() {
 
   useEffect(() => {
     let result = [...requests];
-    if (filter.type) result = result.filter(r => r.certificate_type === filter.type);
-    if (filter.status) result = result.filter(r => r.status === filter.status);
-    if (filter.dateFrom) result = result.filter(r => new Date(r.created_at) >= new Date(filter.dateFrom));
-    if (filter.dateTo) result = result.filter(r => new Date(r.created_at) <= new Date(filter.dateTo + 'T23:59:59'));
+    if (filter.type) result = result.filter((r) => r.certificate_type === filter.type);
+    if (filter.status) result = result.filter((r) => r.status === filter.status);
+    if (filter.dateFrom) result = result.filter((r) => new Date(r.created_at) >= new Date(filter.dateFrom));
+    if (filter.dateTo) result = result.filter((r) => new Date(r.created_at) <= new Date(filter.dateTo + 'T23:59:59'));
     setFiltered(result);
     setSelectedReports([]);
   }, [filter, requests]);
 
   const handleExport = () => {
     const header = 'ID,User,Certificate,Status,Date\n';
-    const rows = filtered.map(r => `${r.id},"${r.user_name}",${r.certificate_type},${r.status},${format(new Date(r.created_at), 'yyyy-MM-dd')}`).join('\n');
+    const rows = filtered.map((r) => `${r.id},"${r.user_name}",${r.certificate_type},${r.status},${format(new Date(r.created_at), 'yyyy-MM-dd')}`).join('\n');
     const blob = new Blob([header + rows], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -54,55 +62,74 @@ export default function Reports() {
     a.click();
   };
 
-  const handleDeleteSelected = async () => {
+  const handleDeleteSelected = () => {
     if (selectedReports.length === 0) {
       alert('Please select at least one report to delete.');
       return;
     }
-    if (!window.confirm(`Delete ${selectedReports.length} selected report(s)?`)) return;
-    try {
-      await dataService.deleteMultipleRequests(selectedReports);
-      await loadRequests();
-      setSelectedReports([]);
-      alert(`✅ ${selectedReports.length} report(s) deleted`);
-    } catch (error) {
-      alert('❌ Error deleting: ' + error.message);
-    }
+    openConfirm({
+      title: `Delete ${selectedReports.length} report${selectedReports.length > 1 ? 's' : ''}?`,
+      message: 'The selected reports will be permanently removed from the database.',
+      confirmLabel: `Delete ${selectedReports.length}`,
+      variant: 'danger',
+      icon: 'trash',
+      onConfirm: async () => {
+        setConfirm((prev) => ({ ...prev, loading: true }));
+        try {
+          await dataService.deleteMultipleRequests(selectedReports);
+          await loadRequests();
+          setSelectedReports([]);
+          closeConfirm();
+        } catch (err) {
+          alert('❌ Error deleting: ' + err.message);
+          closeConfirm();
+        }
+      },
+    });
   };
 
-  const handleDeleteAll = async () => {
+  const handleDeleteAll = () => {
     if (filtered.length === 0) {
       alert('No reports to delete.');
       return;
     }
-    if (!window.confirm(`⚠️ Delete ALL ${filtered.length} filtered reports?`)) return;
-    if (!window.confirm('⚠️⚠️ FINAL CONFIRMATION: Delete all?')) return;
-    try {
-      const ids = filtered.map(r => r.id);
-      await dataService.deleteMultipleRequests(ids);
-      await loadRequests();
-      setSelectedReports([]);
-      alert(`✅ ${filtered.length} report(s) deleted`);
-    } catch (error) {
-      alert('❌ Error deleting: ' + error.message);
-    }
+    openConfirm({
+      title: 'Delete ALL filtered reports?',
+      message: `⚠️ You are about to permanently delete ALL ${filtered.length} filtered reports. This cannot be undone.`,
+      confirmLabel: `Delete All (${filtered.length})`,
+      variant: 'danger',
+      icon: 'warning',
+      onConfirm: async () => {
+        setConfirm((prev) => ({ ...prev, loading: true }));
+        try {
+          const ids = filtered.map((r) => r.id);
+          await dataService.deleteMultipleRequests(ids);
+          await loadRequests();
+          setSelectedReports([]);
+          closeConfirm();
+        } catch (err) {
+          alert('❌ Error deleting: ' + err.message);
+          closeConfirm();
+        }
+      },
+    });
   };
 
   const toggleSelection = (id) => {
-    setSelectedReports(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+    setSelectedReports((prev) => prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]);
   };
 
   const selectAll = () => {
     if (selectedReports.length === filtered.length) {
       setSelectedReports([]);
     } else {
-      setSelectedReports(filtered.map(r => r.id));
+      setSelectedReports(filtered.map((r) => r.id));
     }
   };
 
   const total = filtered.length;
-  const pending = filtered.filter(r => r.status === 'pending').length;
-  const completed = filtered.filter(r => r.status === 'completed').length;
+  const pending = filtered.filter((r) => r.status === 'pending').length;
+  const completed = filtered.filter((r) => r.status === 'completed').length;
 
   if (loading) {
     return <div className="loading">Loading reports...</div>;
@@ -111,7 +138,7 @@ export default function Reports() {
   return (
     <div className="reports-page">
       <h2>Reports</h2>
-      
+
       <div className="report-filters">
         <select value={filter.type} onChange={(e) => setFilter({ ...filter, type: e.target.value })}>
           <option value="">All Types</option><option>Baptism</option><option>Confirmation</option><option>Marriage</option>
@@ -140,7 +167,7 @@ export default function Reports() {
           </tr>
         </thead>
         <tbody>
-          {filtered.map(r => (
+          {filtered.map((r) => (
             <tr key={r.id}>
               <td><input type="checkbox" checked={selectedReports.includes(r.id)} onChange={() => toggleSelection(r.id)} /></td>
               <td>{r.id}</td><td>{r.user_name}</td><td>{r.certificate_type}</td>
@@ -152,6 +179,18 @@ export default function Reports() {
           {filtered.length === 0 && (<tr><td colSpan="8">No records found.</td></tr>)}
         </tbody>
       </table>
+
+      <ConfirmModal
+        isOpen={confirm.open}
+        title={confirm.title}
+        message={confirm.message}
+        confirmLabel={confirm.confirmLabel}
+        variant={confirm.variant}
+        icon={confirm.icon}
+        loading={confirm.loading}
+        onConfirm={confirm.onConfirm}
+        onCancel={closeConfirm}
+      />
     </div>
   );
 }

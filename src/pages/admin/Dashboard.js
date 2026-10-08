@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { format } from 'date-fns';
 import { dataService } from '../../services/dataService';
 import { useNavigate } from 'react-router-dom';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const Icon = ({ name, size = 20 }) => {
   const icons = {
@@ -41,7 +42,21 @@ export default function AdminDashboard() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Modal state
+  const [confirm, setConfirm] = useState({
+    open: false,
+    title: '',
+    message: '',
+    confirmLabel: 'Confirm',
+    variant: 'danger',
+    icon: 'warning',
+    loading: false,
+    onConfirm: null,
+  });
+
+  const openConfirm = (config) => setConfirm({ open: true, loading: false, ...config });
+  const closeConfirm = () => setConfirm((prev) => ({ ...prev, open: false, loading: false }));
 
   useEffect(() => {
     loadData();
@@ -70,30 +85,46 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleDeleteAnnouncement = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this announcement?')) return;
-    setDeleteLoading(true);
-    try {
-      await dataService.deleteAnnouncement(id);
-      setAnnouncements(prev => prev.filter(a => a.id !== id));
-    } catch (error) {
-      alert('❌ Failed to delete announcement: ' + error.message);
-    } finally {
-      setDeleteLoading(false);
-    }
+  const handleDeleteAnnouncement = (id, title) => {
+    openConfirm({
+      title: 'Delete announcement?',
+      message: `"${title}" will be permanently removed from the parish board. This cannot be undone.`,
+      confirmLabel: 'Delete',
+      variant: 'danger',
+      icon: 'trash',
+      onConfirm: async () => {
+        setConfirm((prev) => ({ ...prev, loading: true }));
+        try {
+          await dataService.deleteAnnouncement(id);
+          setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+          closeConfirm();
+        } catch (err) {
+          alert('❌ Failed to delete announcement: ' + err.message);
+          closeConfirm();
+        }
+      },
+    });
   };
 
-  const handleDeleteEvent = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this event?')) return;
-    setDeleteLoading(true);
-    try {
-      await dataService.deleteEvent(id);
-      setEvents(prev => prev.filter(e => e.id !== id));
-    } catch (error) {
-      alert('❌ Failed to delete event: ' + error.message);
-    } finally {
-      setDeleteLoading(false);
-    }
+  const handleDeleteEvent = (id, title) => {
+    openConfirm({
+      title: 'Delete event?',
+      message: `"${title}" will be removed from the parish calendar. This cannot be undone.`,
+      confirmLabel: 'Delete',
+      variant: 'danger',
+      icon: 'trash',
+      onConfirm: async () => {
+        setConfirm((prev) => ({ ...prev, loading: true }));
+        try {
+          await dataService.deleteEvent(id);
+          setEvents((prev) => prev.filter((e) => e.id !== id));
+          closeConfirm();
+        } catch (err) {
+          alert('❌ Failed to delete event: ' + err.message);
+          closeConfirm();
+        }
+      },
+    });
   };
 
   if (loading) {
@@ -133,9 +164,7 @@ export default function AdminDashboard() {
       <section className="dash-hero dash-hero-admin">
         <div className="dash-hero-content">
           <p className="dash-hero-date">{format(now, 'EEEE, MMMM d, yyyy')}</p>
-          <h1 className="dash-hero-title">
-            Parish Administration
-          </h1>
+          <h1 className="dash-hero-title">Parish Administration</h1>
           <p className="dash-hero-sub">
             {pendingRequests.length > 0
               ? `You have ${pendingRequests.length} request${pendingRequests.length > 1 ? 's' : ''} awaiting review.`
@@ -163,35 +192,10 @@ export default function AdminDashboard() {
 
       {/* ===== METRICS ===== */}
       <section className="dash-metrics">
-        <MetricCard
-          label="Pending Review"
-          value={pendingRequests.length}
-          icon="clock"
-          accent="#D97706"
-          hint="Awaiting your action"
-          onClick={() => navigate('/admin/review')}
-        />
-        <MetricCard
-          label="In Processing"
-          value={processingRequests.length}
-          icon="file"
-          accent="#6D28D9"
-          hint="Being prepared"
-        />
-        <MetricCard
-          label="Ready for Pickup"
-          value={readyRequests.length}
-          icon="check"
-          accent="#15803D"
-          hint="Waiting for claimants"
-        />
-        <MetricCard
-          label="Total Requests"
-          value={requests.length}
-          icon="users"
-          accent="#3B82C4"
-          hint={`${completedRequests.length} completed all-time`}
-        />
+        <MetricCard label="Pending Review" value={pendingRequests.length} icon="clock" accent="#D97706" hint="Awaiting your action" onClick={() => navigate('/admin/review')} />
+        <MetricCard label="In Processing" value={processingRequests.length} icon="file" accent="#6D28D9" hint="Being prepared" />
+        <MetricCard label="Ready for Pickup" value={readyRequests.length} icon="check" accent="#15803D" hint="Waiting for claimants" />
+        <MetricCard label="Total Requests" value={requests.length} icon="users" accent="#3B82C4" hint={`${completedRequests.length} completed all-time`} />
       </section>
 
       {/* ===== QUICK ACTIONS ===== */}
@@ -213,7 +217,6 @@ export default function AdminDashboard() {
       {/* ===== TWO COLUMN ===== */}
       <div className="dash-grid">
         <div className="dash-col-main">
-          {/* Recent Requests Table */}
           <section className="dash-section">
             <header className="dash-section-head">
               <div>
@@ -230,13 +233,7 @@ export default function AdminDashboard() {
               <div className="dash-table-wrap">
                 <table className="dash-table">
                   <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Requestor</th>
-                      <th>Certificate</th>
-                      <th>Date</th>
-                      <th>Status</th>
-                    </tr>
+                    <tr><th>ID</th><th>Requestor</th><th>Certificate</th><th>Date</th><th>Status</th></tr>
                   </thead>
                   <tbody>
                     {requests.slice(0, 6).map(r => (
@@ -259,7 +256,6 @@ export default function AdminDashboard() {
             )}
           </section>
 
-          {/* Announcements */}
           <section className="dash-section">
             <header className="dash-section-head">
               <div>
@@ -269,12 +265,7 @@ export default function AdminDashboard() {
               <span className="dash-count-badge">{announcements.length}</span>
             </header>
             {announcements.length === 0 ? (
-              <EmptyState
-                icon="megaphone"
-                title="No announcements"
-                message="Post your first announcement to get started."
-                action={{ label: 'Post announcement', onClick: () => navigate('/admin/post') }}
-              />
+              <EmptyState icon="megaphone" title="No announcements" message="Post your first announcement to get started." action={{ label: 'Post announcement', onClick: () => navigate('/admin/post') }} />
             ) : (
               <div className="dash-list">
                 {announcements.slice(0, 4).map(a => (
@@ -288,7 +279,11 @@ export default function AdminDashboard() {
                     </div>
                     <div className="dash-list-end">
                       <time>{format(new Date(a.created_at), 'MMM d')}</time>
-                      <button className="dash-icon-btn" onClick={() => handleDeleteAnnouncement(a.id)} disabled={deleteLoading} title="Delete">
+                      <button
+                        className="dash-icon-btn"
+                        onClick={() => handleDeleteAnnouncement(a.id, a.title)}
+                        title="Delete"
+                      >
                         <Icon name="trash" size={14} />
                       </button>
                     </div>
@@ -300,7 +295,6 @@ export default function AdminDashboard() {
         </div>
 
         <aside className="dash-col-side">
-          {/* Status breakdown */}
           <section className="dash-side-card">
             <header className="dash-section-head">
               <div>
@@ -316,7 +310,6 @@ export default function AdminDashboard() {
             </ul>
           </section>
 
-          {/* Today's activity */}
           <section className="dash-side-card">
             <header className="dash-section-head">
               <div>
@@ -342,7 +335,6 @@ export default function AdminDashboard() {
             )}
           </section>
 
-          {/* Events */}
           <section className="dash-side-card">
             <header className="dash-section-head">
               <div>
@@ -366,7 +358,11 @@ export default function AdminDashboard() {
                         <strong>{e.title}</strong>
                         <span>{e.time}</span>
                       </div>
-                      <button className="dash-icon-btn" onClick={() => handleDeleteEvent(e.id)} disabled={deleteLoading} title="Delete">
+                      <button
+                        className="dash-icon-btn"
+                        onClick={() => handleDeleteEvent(e.id, e.title)}
+                        title="Delete"
+                      >
                         <Icon name="trash" size={14} />
                       </button>
                     </li>
@@ -377,6 +373,19 @@ export default function AdminDashboard() {
           </section>
         </aside>
       </div>
+
+      {/* ===== CONFIRM MODAL ===== */}
+      <ConfirmModal
+        isOpen={confirm.open}
+        title={confirm.title}
+        message={confirm.message}
+        confirmLabel={confirm.confirmLabel}
+        variant={confirm.variant}
+        icon={confirm.icon}
+        loading={confirm.loading}
+        onConfirm={confirm.onConfirm}
+        onCancel={closeConfirm}
+      />
     </div>
   );
 }
@@ -387,9 +396,7 @@ function MetricCard({ label, value, icon, accent, hint, onClick }) {
   return (
     <div className={`dash-metric ${onClick ? 'clickable' : ''}`} style={{ '--accent': accent }} onClick={onClick}>
       <div className="dash-metric-top">
-        <div className="dash-metric-icon">
-          <Icon name={icon} size={18} />
-        </div>
+        <div className="dash-metric-icon"><Icon name={icon} size={18} /></div>
         <span className="dash-metric-label">{label}</span>
       </div>
       <div className="dash-metric-value">{value}</div>
@@ -401,16 +408,12 @@ function MetricCard({ label, value, icon, accent, hint, onClick }) {
 function ActionCard({ icon, title, desc, onClick, accent }) {
   return (
     <button className="dash-action-card" onClick={onClick} style={{ '--accent': accent }}>
-      <div className="dash-action-icon">
-        <Icon name={icon} size={20} />
-      </div>
+      <div className="dash-action-icon"><Icon name={icon} size={20} /></div>
       <div className="dash-action-body">
         <strong>{title}</strong>
         <span>{desc}</span>
       </div>
-      <div className="dash-action-arrow">
-        <Icon name="arrow" size={16} />
-      </div>
+      <div className="dash-action-arrow"><Icon name="arrow" size={16} /></div>
     </button>
   );
 }
@@ -436,9 +439,7 @@ function BreakdownRow({ label, value, total, color }) {
 function EmptyState({ icon, title, message, action, compact }) {
   return (
     <div className={`dash-empty ${compact ? 'compact' : ''}`}>
-      <div className="dash-empty-icon">
-        <Icon name={icon} size={compact ? 20 : 28} />
-      </div>
+      <div className="dash-empty-icon"><Icon name={icon} size={compact ? 20 : 28} /></div>
       <h3>{title}</h3>
       <p>{message}</p>
       {action && (
