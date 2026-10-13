@@ -5,41 +5,229 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import ConfirmModal from '../../components/ConfirmModal';
 
+// ============================================================
+//  CERTIFICATE CONFIGURATION
+// ============================================================
+const CERTIFICATE_TYPES = {
+  'Certificate of No Record': {
+    label: 'Certificate of No Record',
+    description: 'Certifies that a person has no record in the parish book.',
+    fields: [
+      { name: 'fullName', label: 'Full Name', type: 'text', required: true, placeholder: 'e.g., Juan Dela Cruz' },
+      { name: 'sonDaughterOf', label: 'Son/Daughter of', type: 'text', required: true, placeholder: 'e.g., Pedro Dela Cruz & Maria Santos' },
+      {
+        name: 'bookType',
+        label: 'Book to search for absence of record',
+        type: 'select',
+        required: true,
+        options: ['Baptism', 'Confirmation', 'Marriage'],
+      },
+    ],
+  },
+
+  'Certificate of Good Moral': {
+    label: 'Certificate of Good Moral',
+    description: 'Certifies good moral character as a parishioner and youth organization member.',
+    fields: [
+      { name: 'fullName', label: 'Full Name', type: 'text', required: true, placeholder: 'e.g., Juan Dela Cruz' },
+      {
+        name: 'sonDaughterOf',
+        label: "Son/Daughter of (Parents' full names)",
+        type: 'text',
+        required: true,
+        placeholder: 'e.g., Pedro Dela Cruz & Maria Santos',
+      },
+      {
+        name: 'gkkMember',
+        label: 'GKK / Parishioner Status',
+        type: 'text',
+        required: true,
+        placeholder: 'e.g., Member of GKK San Isidro',
+      },
+      {
+        name: 'youthOrg',
+        label: 'Youth Organization (if any)',
+        type: 'text',
+        required: false,
+        placeholder: 'e.g., Parish Youth Ministry',
+      },
+      {
+        name: 'purpose',
+        label: 'Purpose of Certification',
+        type: 'text',
+        required: true,
+        placeholder: 'e.g., Scholarship application, Employment requirement',
+      },
+    ],
+  },
+
+  'Baptismal Certificate': {
+    label: 'Baptismal Certificate',
+    description: 'Official record of the Sacrament of Baptism.',
+    fields: [
+      { name: 'baptizedName', label: 'Name of Baptized', type: 'text', required: true, placeholder: 'e.g., Juan Dela Cruz' },
+      { name: 'dateOfBirth', label: 'Date of Birth', type: 'date', required: true },
+      { name: 'placeOfBirth', label: 'Place of Birth', type: 'text', required: true, placeholder: 'e.g., New Cebu, President Roxas, Cotabato' },
+      { name: 'fatherName', label: "Father's Full Name", type: 'text', required: true, placeholder: 'e.g., Pedro Dela Cruz' },
+      { name: 'motherName', label: "Mother's Full Name", type: 'text', required: true, placeholder: 'e.g., Maria Santos' },
+      {
+        name: 'sponsors',
+        label: 'Sponsors (Ninong/Ninang)',
+        type: 'textarea',
+        required: true,
+        placeholder: 'List the names of the sponsors, separated by commas',
+      },
+      {
+        name: 'officiatingMinister',
+        label: 'Officiating Minister',
+        type: 'text',
+        required: false,
+        placeholder: 'e.g., Rev. Fr. Jonel P. Peroy, DCK',
+      },
+      { name: 'dateOfBaptism', label: 'Date of Baptism (if known)', type: 'date', required: false },
+    ],
+  },
+
+  'Certificate of Confirmation': {
+    label: 'Certificate of Confirmation',
+    description: 'Official record of the Sacrament of Confirmation.',
+    fields: [
+      { name: 'confirmedName', label: 'Name of Confirmed', type: 'text', required: true, placeholder: 'e.g., Juan Dela Cruz' },
+      { name: 'parish', label: 'Parish of Confirmation', type: 'text', required: true, placeholder: 'e.g., Our Lady of Fatima - Sta. Cruz Parish' },
+      { name: 'dateOfConfirmation', label: 'Date of Confirmation', type: 'date', required: true },
+      { name: 'sponsor', label: 'Sponsor(s)', type: 'text', required: true, placeholder: 'e.g., Pedro Dela Cruz' },
+      { name: 'fatherName', label: "Father's Full Name", type: 'text', required: true, placeholder: 'e.g., Pedro Dela Cruz' },
+      { name: 'motherName', label: "Mother's Full Name", type: 'text', required: true, placeholder: 'e.g., Maria Santos' },
+      {
+        name: 'purpose',
+        label: 'Purpose of Certification',
+        type: 'text',
+        required: true,
+        placeholder: 'e.g., Marriage requirement, Employment',
+      },
+    ],
+  },
+
+  'Marriage Certificate': {
+    label: 'Marriage Certificate',
+    description: 'Official record of the Sacrament of Holy Matrimony.',
+    fields: [
+      { name: 'groomName', label: "Groom's Full Name", type: 'text', required: true, placeholder: 'e.g., Juan Dela Cruz' },
+      { name: 'brideName', label: "Bride's Full Name", type: 'text', required: true, placeholder: 'e.g., Maria Santos' },
+      { name: 'dateOfMarriage', label: 'Date of Marriage', type: 'date', required: true },
+      { name: 'placeOfMarriage', label: 'Place of Marriage', type: 'text', required: true, placeholder: 'e.g., Our Lady of Fatima - Sta. Cruz Parish, New Cebu' },
+      { name: 'groomFather', label: "Groom's Father", type: 'text', required: true, placeholder: 'e.g., Pedro Dela Cruz' },
+      { name: 'groomMother', label: "Groom's Mother", type: 'text', required: true, placeholder: 'e.g., Ana Dela Cruz' },
+      { name: 'brideFather', label: "Bride's Father", type: 'text', required: true, placeholder: 'e.g., Jose Santos' },
+      { name: 'brideMother', label: "Bride's Mother", type: 'text', required: true, placeholder: 'e.g., Rosa Santos' },
+      {
+        name: 'sponsors',
+        label: 'Sponsors (Ninong/Ninang)',
+        type: 'textarea',
+        required: true,
+        placeholder: 'List the names of the principal sponsors, separated by commas',
+      },
+      {
+        name: 'officiatingMinister',
+        label: 'Officiating Minister',
+        type: 'text',
+        required: false,
+        placeholder: 'e.g., Rev. Fr. Jonel P. Peroy, DCK',
+      },
+      {
+        name: 'purpose',
+        label: 'Purpose of Certification',
+        type: 'text',
+        required: true,
+        placeholder: 'e.g., Passport application, Employment requirement, Legal purposes',
+      },
+    ],
+  },
+};
+
+const DEFAULT_TYPE = 'Baptismal Certificate';
+
+// ------------------------------------------------------------
+//  Derive legacy column values (for the NOT NULL columns in DB)
+// ------------------------------------------------------------
+function deriveLegacyFields(certificateType, formData, user) {
+  const d = formData || {};
+  const today = new Date().toISOString().split('T')[0];
+
+  const fullName =
+    d.fullName ||
+    d.baptizedName ||
+    d.confirmedName ||
+    d.groomName ||
+    user?.name ||
+    'Unknown';
+
+  const dob =
+    d.dateOfBirth ||
+    d.dateOfBaptism ||
+    d.dateOfConfirmation ||
+    d.dateOfMarriage ||
+    today;
+
+  const fatherName =
+    d.fatherName || d.groomFather || d.brideFather || null;
+
+  const motherName =
+    d.motherName || d.groomMother || d.brideMother || null;
+
+  return { fullName, dob, fatherName, motherName };
+}
+
+// ------------------------------------------------------------
+//  Format a date string nicely for the review modal
+// ------------------------------------------------------------
+function formatDateForDisplay(val) {
+  if (!val) return '';
+  try {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      return new Date(val).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
+    return val;
+  } catch {
+    return val;
+  }
+}
+
+// ============================================================
+//  MAIN COMPONENT
+// ============================================================
 export default function RequestCertificate() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [certificateType, setCertificateType] = useState(DEFAULT_TYPE);
+  const [formData, setFormData] = useState({});
   const [showConfirm, setShowConfirm] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState({
-    fullName: '',
+
+  const [common, setCommon] = useState({
     email: '',
-    certificateType: 'Baptism',
-    dob: '',
-    fatherName: '',
-    motherName: '',
+    appointmentDate: '',
+    appointmentTime: '',
+    paymentMethod: 'cash',
     requirements: null,
     requirementsData: null,
     requirementsType: null,
     requirementsName: null,
-    appointmentDate: '',
-    appointmentTime: '',
-    paymentMethod: 'cash',
     receipt: null,
     receiptData: null,
     receiptType: null,
     receiptName: null,
   });
 
-  // Set form values when user is available
+  // Prefill email
   useEffect(() => {
     if (user) {
-      setForm((prev) => ({
-        ...prev,
-        fullName: user.name || '',
-        email: user.email || '',
-      }));
+      setCommon((prev) => ({ ...prev, email: user.email || '' }));
     }
   }, [user]);
 
@@ -51,12 +239,16 @@ export default function RequestCertificate() {
       reader.readAsDataURL(file);
     });
 
-  const handleChange = async (e) => {
+  const handleFieldChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleCommonChange = async (e) => {
     const { name, value, type, files } = e.target;
     if (type === 'file' && files?.[0]) {
       const file = files[0];
       const data = await readFileData(file);
-      setForm((prev) => ({
+      setCommon((prev) => ({
         ...prev,
         [name]: file,
         [`${name}Data`]: data,
@@ -65,10 +257,16 @@ export default function RequestCertificate() {
       }));
       return;
     }
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setCommon((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Step 1: User clicks "Submit Request" → open the confirmation modal
+  // Reset dynamic fields when certificate type changes
+  useEffect(() => {
+    setFormData({});
+    setError('');
+  }, [certificateType]);
+
+  // ---- Step 1: User clicks Submit → validate + open confirmation ----
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
@@ -79,27 +277,35 @@ export default function RequestCertificate() {
       return;
     }
 
-    // Basic sanity check
-    if (!form.fullName || !form.email || !form.dob || !form.appointmentDate || !form.appointmentTime) {
-      setError('Please fill in all required fields before submitting.');
+    const config = CERTIFICATE_TYPES[certificateType];
+
+    for (const field of config.fields) {
+      if (field.required && !formData[field.name]) {
+        setError(`Please fill in "${field.label}".`);
+        return;
+      }
+    }
+
+    if (!common.email || !common.appointmentDate || !common.appointmentTime) {
+      setError('Please complete the appointment and email fields.');
       return;
     }
 
-    if (form.paymentMethod === 'gcash' && !form.receiptData) {
-      setError('Please upload your GCash receipt.');
-      return;
-    }
-
-    if (!form.requirementsData) {
+    if (!common.requirementsData) {
       setError('Please upload the required documents.');
       return;
     }
 
-    // Open the confirmation modal
+    if (common.paymentMethod === 'gcash' && !common.receiptData) {
+      setError('Please upload your GCash receipt.');
+      return;
+    }
+
+    // All valid → show confirmation
     setShowConfirm(true);
   };
 
-  // Step 2: User confirms inside the modal → actually submit to Supabase
+  // ---- Step 2: User confirms → actually save to DB ----
   const confirmSubmit = async () => {
     setLoading(true);
     setError('');
@@ -112,57 +318,52 @@ export default function RequestCertificate() {
         return;
       }
 
-      console.log('Submitting request for user:', user.id);
+      const legacy = deriveLegacyFields(certificateType, formData, user);
 
       const requestData = {
         user_id: user.id,
         user_name: user.name || 'Unknown',
-        full_name: form.fullName,
-        email: form.email,
-        certificate_type: form.certificateType,
-        dob: form.dob,
-        father_name: form.fatherName || null,
-        mother_name: form.motherName || null,
-        requirements_data: form.requirementsData,
-        requirements_type: form.requirementsType,
-        requirements_name: form.requirementsName,
-        appointment_date: form.appointmentDate,
-        appointment_time: form.appointmentTime,
-        payment_method: form.paymentMethod,
-        receipt_data: form.receiptData,
-        receipt_type: form.receiptType,
-        receipt_name: form.receiptName,
+        email: common.email,
+        certificate_type: certificateType,
+        details: formData,
+
+        // Legacy NOT NULL columns
+        full_name: legacy.fullName,
+        dob: legacy.dob,
+        father_name: legacy.fatherName,
+        mother_name: legacy.motherName,
+
+        appointment_date: common.appointmentDate,
+        appointment_time: common.appointmentTime,
+        payment_method: common.paymentMethod,
+        payment_status:
+          common.paymentMethod === 'gcash' ? 'unverified' : 'verified',
+        requirements_data: common.requirementsData,
+        requirements_type: common.requirementsType,
+        requirements_name: common.requirementsName,
+        receipt_data: common.receiptData,
+        receipt_type: common.receiptType,
+        receipt_name: common.receiptName,
         status: 'pending',
-        payment_status: form.paymentMethod === 'gcash' ? 'unverified' : 'verified',
       };
 
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from('certificate_requests')
         .insert([requestData])
         .select();
 
-      if (insertError) {
-        console.error('Insert error:', insertError);
-        throw new Error(insertError.message);
-      }
+      if (insertError) throw new Error(insertError.message);
 
-      console.log('Request submitted:', data);
-
-      // Create notification
       await supabase.from('notifications').insert([
         {
           user_id: user.id,
-          message: `Your request for ${form.certificateType} certificate has been submitted. Awaiting review.`,
+          message: `Your request for ${certificateType} has been submitted. Awaiting review.`,
         },
       ]);
 
-      // Show success state briefly, then navigate
       setShowConfirm(false);
-      setSubmitted(true);
-
-      setTimeout(() => {
-        navigate('/user/dashboard');
-      }, 1800);
+      alert('✅ Request submitted successfully!');
+      navigate('/user/dashboard');
     } catch (err) {
       console.error('Error submitting request:', err);
       setError(err.message || 'An unexpected error occurred');
@@ -181,27 +382,7 @@ export default function RequestCertificate() {
     );
   }
 
-  // Success screen
-  if (submitted) {
-    return (
-      <div className="request-page">
-        <div className="request-success">
-          <div className="request-success-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
-          </div>
-          <h2>Request Submitted!</h2>
-          <p>
-            Your <strong>{form.certificateType}</strong> certificate request has been received. The parish
-            office will review it shortly. You'll be notified by email when your request status updates.
-          </p>
-          <p className="request-success-redirect">Redirecting to your dashboard…</p>
-        </div>
-      </div>
-    );
-  }
+  const config = CERTIFICATE_TYPES[certificateType];
 
   return (
     <div className="request-page">
@@ -221,7 +402,12 @@ export default function RequestCertificate() {
           ❌ {error}
           <button
             onClick={() => setError('')}
-            style={{ marginLeft: '10px', background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{
+              marginLeft: '10px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+            }}
           >
             ✕
           </button>
@@ -230,85 +416,186 @@ export default function RequestCertificate() {
 
       <div className="request-page-grid">
         <form onSubmit={handleSubmit} className="request-form">
+          {/* ===== Certificate Type Selector ===== */}
           <div className="form-section">
-            <h3>Personal Details</h3>
-            <p>Provide the details below so we can locate your records and process your request quickly.</p>
+            <h3>Certificate Type</h3>
+            <p>
+              Select the certificate you need. The form below will adjust to the
+              required information.
+            </p>
+
             <div className="form-group">
-              <label className="form-label">Full Name *</label>
-              <input name="fullName" value={form.fullName} onChange={handleChange} required disabled={loading} />
+              <label className="form-label">Certificate *</label>
+              <select
+                value={certificateType}
+                onChange={(e) => setCertificateType(e.target.value)}
+                disabled={loading}
+              >
+                {Object.keys(CERTIFICATE_TYPES).map((key) => (
+                  <option key={key} value={key}>
+                    {CERTIFICATE_TYPES[key].label}
+                  </option>
+                ))}
+              </select>
+              <small>{config.description}</small>
             </div>
+          </div>
+
+          {/* ===== Dynamic Fields ===== */}
+          <div className="form-section">
+            <h3>Information for the Certificate</h3>
+            <p>
+              These details will be printed on your{' '}
+              {config.label.toLowerCase()}. Please ensure accuracy.
+            </p>
+
+            {config.fields.map((field) => (
+              <div className="form-group" key={field.name}>
+                <label className="form-label">
+                  {field.label} {field.required && '*'}
+                </label>
+
+                {field.type === 'textarea' ? (
+                  <textarea
+                    name={field.name}
+                    value={formData[field.name] || ''}
+                    onChange={handleFieldChange}
+                    placeholder={field.placeholder || ''}
+                    required={field.required}
+                    disabled={loading}
+                    rows={3}
+                    className="form-textarea"
+                  />
+                ) : field.type === 'select' ? (
+                  <select
+                    name={field.name}
+                    value={formData[field.name] || ''}
+                    onChange={handleFieldChange}
+                    required={field.required}
+                    disabled={loading}
+                  >
+                    <option value="">Select…</option>
+                    {field.options.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type={field.type}
+                    name={field.name}
+                    value={formData[field.name] || ''}
+                    onChange={handleFieldChange}
+                    placeholder={field.placeholder || ''}
+                    required={field.required}
+                    disabled={loading}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* ===== Contact / Appointment ===== */}
+          <div className="form-section">
+            <h3>Appointment & Contact</h3>
+            <p>
+              We'll notify you by email once your certificate is ready for pick
+              up.
+            </p>
+
             <div className="form-group">
               <label className="form-label">Email *</label>
-              <input name="email" type="email" value={form.email} onChange={handleChange} required disabled={loading} />
+              <input
+                name="email"
+                type="email"
+                value={common.email}
+                onChange={handleCommonChange}
+                required
+                disabled={loading}
+              />
             </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Date of Birth *</label>
-                <input name="dob" type="date" value={form.dob} onChange={handleChange} required disabled={loading} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Certificate Type *</label>
-                <select name="certificateType" value={form.certificateType} onChange={handleChange} disabled={loading}>
-                  <option>Baptism</option>
-                  <option>Confirmation</option>
-                  <option>Marriage</option>
-                </select>
-              </div>
-            </div>
-          </div>
 
-          <div className="form-section">
-            <h3>Family Information</h3>
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Father's Full Name</label>
-                <input name="fatherName" value={form.fatherName} onChange={handleChange} disabled={loading} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Mother's Full Name</label>
-                <input name="motherName" value={form.motherName} onChange={handleChange} disabled={loading} />
-              </div>
-            </div>
-          </div>
-
-          <div className="form-section">
-            <h3>Appointment & Documents</h3>
-            <div className="form-group">
-              <label className="form-label">Upload Requirements *</label>
-              <input name="requirements" type="file" onChange={handleChange} required disabled={loading} />
-              <small>Accepted formats: PDF, JPG, PNG.</small>
-            </div>
             <div className="form-row">
               <div className="form-group">
                 <label className="form-label">Appointment Date *</label>
-                <input name="appointmentDate" type="date" value={form.appointmentDate} onChange={handleChange} required disabled={loading} />
+                <input
+                  name="appointmentDate"
+                  type="date"
+                  value={common.appointmentDate}
+                  onChange={handleCommonChange}
+                  required
+                  disabled={loading}
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">Appointment Time *</label>
-                <input name="appointmentTime" type="time" value={form.appointmentTime} onChange={handleChange} required disabled={loading} />
+                <input
+                  name="appointmentTime"
+                  type="time"
+                  value={common.appointmentTime}
+                  onChange={handleCommonChange}
+                  required
+                  disabled={loading}
+                />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Upload Requirements *</label>
+              <input
+                name="requirements"
+                type="file"
+                onChange={handleCommonChange}
+                required
+                disabled={loading}
+              />
+              <small>Accepted formats: PDF, JPG, PNG.</small>
             </div>
           </div>
 
+          {/* ===== Payment ===== */}
           <div className="form-section">
             <h3>Payment Options</h3>
+
             <div className="form-group">
               <label className="form-label">Payment Method *</label>
               <div className="radio-group">
                 <label>
-                  <input type="radio" name="paymentMethod" value="cash" checked={form.paymentMethod === 'cash'} onChange={handleChange} disabled={loading} />
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="cash"
+                    checked={common.paymentMethod === 'cash'}
+                    onChange={handleCommonChange}
+                    disabled={loading}
+                  />
                   Cash on Pickup
                 </label>
                 <label>
-                  <input type="radio" name="paymentMethod" value="gcash" checked={form.paymentMethod === 'gcash'} onChange={handleChange} disabled={loading} />
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="gcash"
+                    checked={common.paymentMethod === 'gcash'}
+                    onChange={handleCommonChange}
+                    disabled={loading}
+                  />
                   Online Payment (GCash)
                 </label>
               </div>
             </div>
-            {form.paymentMethod === 'gcash' && (
+
+            {common.paymentMethod === 'gcash' && (
               <div className="form-group">
                 <label className="form-label">Upload GCash Receipt *</label>
-                <input name="receipt" type="file" onChange={handleChange} required disabled={loading} />
+                <input
+                  name="receipt"
+                  type="file"
+                  onChange={handleCommonChange}
+                  required
+                  disabled={loading}
+                />
                 <small>Please keep a copy for your records.</small>
               </div>
             )}
@@ -319,167 +606,120 @@ export default function RequestCertificate() {
           </button>
         </form>
 
+        {/* ===== Sidebar ===== */}
         <aside className="request-sidebar">
-          <h3>Request Checklist</h3>
-          <p>Complete all mandatory fields before submission. Our parish office will confirm your appointment within 24 hours.</p>
+          <h3>You are requesting</h3>
+          <div className="request-sidebar-badge">{config.label}</div>
+          <p>{config.description}</p>
+
+          <h3 style={{ marginTop: '1.5rem' }}>Fields included</h3>
           <ul>
-            <li><strong>Full Name</strong> as it appears on record</li>
-            <li><strong>Valid Email</strong> for notifications</li>
-            <li><strong>Supporting documents</strong> uploaded clearly</li>
-            <li><strong>Appointment details</strong> selected correctly</li>
+            {config.fields.map((f) => (
+              <li key={f.name}>
+                <strong>{f.label}</strong>
+                {f.required ? ' — required' : ' — optional'}
+              </li>
+            ))}
           </ul>
-          <p><strong>Need help?</strong> Visit the parish office or contact the administrator after login.</p>
+
+          <p style={{ marginTop: '1.5rem' }}>
+            <strong>Need help?</strong> Visit the parish office or contact the
+            administrator after login.
+          </p>
         </aside>
       </div>
 
-      {/* ===== REVIEW-BEFORE-SUBMIT CONFIRMATION MODAL ===== */}
-      <ReviewConfirmModal
+      {/* ===== SUBMIT CONFIRMATION MODAL ===== */}
+      <ConfirmModal
         isOpen={showConfirm}
-        form={form}
+        title="Submit this request?"
+        message="Please review the details below. Once submitted, your request will be sent to the parish office for review."
+        confirmLabel="Yes, Submit Request"
+        cancelLabel="Go Back & Edit"
+        variant="primary"
+        icon="check"
         loading={loading}
-        onCancel={() => setShowConfirm(false)}
         onConfirm={confirmSubmit}
+        onCancel={() => !loading && setShowConfirm(false)}
+        customBody={
+          <SubmitReviewBody
+            certificateType={certificateType}
+            fields={config.fields}
+            formData={formData}
+            common={common}
+          />
+        }
       />
     </div>
   );
 }
 
-/* ===== REVIEW CONFIRMATION MODAL (custom layout for request summary) ===== */
-function ReviewConfirmModal({ isOpen, form, loading, onCancel, onConfirm }) {
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKey = (e) => {
-      if (e.key === 'Escape' && !loading) onCancel();
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [isOpen, loading, onCancel]);
-
-  useEffect(() => {
-    if (isOpen) {
-      const original = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = original;
-      };
-    }
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  const fileSizeLabel = (dataUrl) => {
-    if (!dataUrl) return '—';
-    const base64Length = dataUrl.split(',')[1]?.length || 0;
-    const bytes = (base64Length * 3) / 4;
-    if (bytes < 1024) return `${bytes.toFixed(0)} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-  };
-
+/* ============================================================
+   SUBMIT REVIEW BODY
+   Shows a summary of everything before submission
+   ============================================================ */
+function SubmitReviewBody({ certificateType, fields, formData, common }) {
   return (
-    <div className="confirm-overlay" onClick={() => !loading && onCancel()}>
-      <div
-        className="confirm-modal confirm-primary request-review-modal"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-      >
-        <div className="confirm-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="9" y1="15" x2="15" y2="15" />
-          </svg>
+    <div className="submit-review">
+      {/* Certificate type */}
+      <div className="submit-review-section">
+        <div className="submit-review-row">
+          <span className="submit-review-label">Certificate</span>
+          <span className="submit-review-value">{certificateType}</span>
         </div>
+      </div>
 
-        <h3 className="confirm-title">Review your request</h3>
-        <p className="confirm-message">
-          Please verify the details below. Once submitted, our parish office will process your request.
-        </p>
+      {/* Dynamic fields */}
+      <div className="submit-review-section">
+        {fields.map((field) => {
+          const value = formData[field.name];
+          if (!value) return null;
+          const displayValue =
+            field.type === 'date' ? formatDateForDisplay(value) : value;
+          return (
+            <div className="submit-review-row" key={field.name}>
+              <span className="submit-review-label">{field.label}</span>
+              <span className="submit-review-value">{displayValue}</span>
+            </div>
+          );
+        })}
+      </div>
 
-        <div className="request-review-body">
-          <div className="request-review-grid">
-            <div className="request-review-item">
-              <span className="request-review-label">Full Name</span>
-              <span className="request-review-value">{form.fullName || '—'}</span>
-            </div>
-            <div className="request-review-item">
-              <span className="request-review-label">Email</span>
-              <span className="request-review-value">{form.email || '—'}</span>
-            </div>
-            <div className="request-review-item">
-              <span className="request-review-label">Certificate Type</span>
-              <span className="request-review-value">{form.certificateType}</span>
-            </div>
-            <div className="request-review-item">
-              <span className="request-review-label">Date of Birth</span>
-              <span className="request-review-value">{form.dob || '—'}</span>
-            </div>
-            {form.fatherName && (
-              <div className="request-review-item">
-                <span className="request-review-label">Father's Name</span>
-                <span className="request-review-value">{form.fatherName}</span>
-              </div>
-            )}
-            {form.motherName && (
-              <div className="request-review-item">
-                <span className="request-review-label">Mother's Name</span>
-                <span className="request-review-value">{form.motherName}</span>
-              </div>
-            )}
-            <div className="request-review-item">
-              <span className="request-review-label">Appointment</span>
-              <span className="request-review-value">
-                {form.appointmentDate} at {form.appointmentTime}
-              </span>
-            </div>
-            <div className="request-review-item">
-              <span className="request-review-label">Payment Method</span>
-              <span className="request-review-value">
-                {form.paymentMethod === 'gcash' ? 'GCash (Online)' : 'Cash on Pickup'}
-              </span>
-            </div>
+      {/* Appointment + contact */}
+      <div className="submit-review-section">
+        <div className="submit-review-row">
+          <span className="submit-review-label">Email</span>
+          <span className="submit-review-value">{common.email}</span>
+        </div>
+        <div className="submit-review-row">
+          <span className="submit-review-label">Appointment</span>
+          <span className="submit-review-value">
+            {formatDateForDisplay(common.appointmentDate)} at{' '}
+            {common.appointmentTime}
+          </span>
+        </div>
+        <div className="submit-review-row">
+          <span className="submit-review-label">Payment</span>
+          <span className="submit-review-value">
+            {common.paymentMethod === 'gcash'
+              ? 'Online Payment (GCash)'
+              : 'Cash on Pickup'}
+          </span>
+        </div>
+        {common.requirementsName && (
+          <div className="submit-review-row">
+            <span className="submit-review-label">Requirements</span>
+            <span className="submit-review-value">
+              {common.requirementsName}
+            </span>
           </div>
-
-          <div className="request-review-files">
-            <div className="request-review-file">
-              <span className="request-review-file-icon">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-                  <polyline points="13 2 13 9 20 9" />
-                </svg>
-              </span>
-              <div className="request-review-file-body">
-                <span className="request-review-file-name">{form.requirementsName || 'Requirements'}</span>
-                <span className="request-review-file-meta">{fileSizeLabel(form.requirementsData)}</span>
-              </div>
-            </div>
-
-            {form.paymentMethod === 'gcash' && form.receiptData && (
-              <div className="request-review-file">
-                <span className="request-review-file-icon">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="16" rx="2" />
-                    <line x1="3" y1="10" x2="21" y2="10" />
-                  </svg>
-                </span>
-                <div className="request-review-file-body">
-                  <span className="request-review-file-name">{form.receiptName || 'GCash Receipt'}</span>
-                  <span className="request-review-file-meta">{fileSizeLabel(form.receiptData)}</span>
-                </div>
-              </div>
-            )}
+        )}
+        {common.paymentMethod === 'gcash' && common.receiptName && (
+          <div className="submit-review-row">
+            <span className="submit-review-label">GCash Receipt</span>
+            <span className="submit-review-value">{common.receiptName}</span>
           </div>
-        </div>
-
-        <div className="confirm-actions">
-          <button className="confirm-btn confirm-cancel" onClick={onCancel} disabled={loading} type="button">
-            Go Back & Edit
-          </button>
-          <button className="confirm-btn confirm-primary" onClick={onConfirm} disabled={loading} type="button">
-            {loading ? 'Submitting…' : 'Confirm & Submit'}
-          </button>
-        </div>
+        )}
       </div>
     </div>
   );

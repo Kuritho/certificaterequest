@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import CertificatePreviewModal from '../../components/CertificatePreviewModal';
 
 // Elegant inline SVG icons
 const Icon = ({ name, size = 20 }) => {
@@ -18,6 +19,7 @@ const Icon = ({ name, size = 20 }) => {
     megaphone: <><path d="M3 11l18-8v18l-18-8z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></>,
     inbox: <><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></>,
     sparkle: <><path d="M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2z"/></>,
+    download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>,
   };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -43,6 +45,7 @@ export default function UserDashboard() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [certificatePreview, setCertificatePreview] = useState(null);
 
   useEffect(() => {
     if (user?.id) loadData();
@@ -116,7 +119,7 @@ export default function UserDashboard() {
           </h1>
           <p className="dash-hero-sub">
             {activeRequest
-              ? `Your ${activeRequest.certificate_type} certificate request is currently ${activeRequest.status}.`
+              ? `Your ${activeRequest.certificate_type} request is currently ${activeRequest.status}.`
               : 'Welcome to your parish portal. Request certificates, track progress, and stay connected.'}
           </p>
           <div className="dash-hero-actions">
@@ -197,8 +200,10 @@ export default function UserDashboard() {
           <section className="dash-section">
             <header className="dash-section-head">
               <div>
-                <h2>Recent Activity</h2>
-                <p className="dash-section-sub">Your latest certificate requests</p>
+                <h2>My Certificates</h2>
+                <p className="dash-section-sub">
+                  Download approved certificates — available once the parish office marks them as ready
+                </p>
               </div>
             </header>
             {myRequests.length === 0 ? (
@@ -210,25 +215,45 @@ export default function UserDashboard() {
               />
             ) : (
               <div className="dash-list">
-                {myRequests.slice(0, 5).map(req => (
-                  <div key={req.id} className="dash-list-item">
-                    <div className="dash-list-icon" style={{ background: statusConfig[req.status]?.bg, color: statusConfig[req.status]?.color }}>
-                      <Icon name="file" size={18} />
-                    </div>
-                    <div className="dash-list-body">
-                      <div className="dash-list-title">
-                        {req.certificate_type} Certificate
+                {myRequests.slice(0, 5).map(req => {
+                  const canDownload = req.status === 'ready' || req.status === 'completed';
+                  return (
+                    <div key={req.id} className={`dash-list-item ${canDownload ? 'dash-list-item-approved' : ''}`}>
+                      <div
+                        className="dash-list-icon"
+                        style={{
+                          background: statusConfig[req.status]?.bg,
+                          color: statusConfig[req.status]?.color,
+                        }}
+                      >
+                        <Icon name="file" size={18} />
                       </div>
-                      <div className="dash-list-meta">
-                        Request #{req.id} · Submitted {format(new Date(req.created_at), 'MMM d, yyyy')}
+                      <div className="dash-list-body">
+                        <div className="dash-list-title">{req.certificate_type}</div>
+                        <div className="dash-list-meta">
+                          Request #{req.id} · Submitted {format(new Date(req.created_at), 'MMM d, yyyy')}
+                        </div>
                       </div>
+
+                      {/* Download button — only when ready or completed */}
+                      {/* {canDownload && (
+                        <button
+                          className="dash-download-btn"
+                          onClick={() => setCertificatePreview(req)}
+                          title="Download Certificate PDF"
+                        >
+                          <Icon name="download" size={14} />
+                          Download
+                        </button>
+                      )} */}
+
+                      <span className={`dash-status-pill dash-status-${req.status}`}>
+                        <span className="dash-status-dot"></span>
+                        {statusConfig[req.status]?.label}
+                      </span>
                     </div>
-                    <span className={`dash-status-pill dash-status-${req.status}`}>
-                      <span className="dash-status-dot"></span>
-                      {statusConfig[req.status]?.label}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </section>
@@ -332,6 +357,13 @@ export default function UserDashboard() {
           </section>
         </aside>
       </div>
+
+      {/* ===== CERTIFICATE PREVIEW MODAL ===== */}
+      <CertificatePreviewModal
+        isOpen={!!certificatePreview}
+        request={certificatePreview}
+        onClose={() => setCertificatePreview(null)}
+      />
     </div>
   );
 }
@@ -369,7 +401,7 @@ function RequestTracker({ request }) {
     <div className="tracker">
       <div className="tracker-header">
         <div>
-          <div className="tracker-title">{request.certificate_type} Certificate</div>
+          <div className="tracker-title">{request.certificate_type}</div>
           <div className="tracker-sub">
             Request #{request.id} · Appointment {request.appointment_date} at {request.appointment_time}
           </div>

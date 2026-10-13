@@ -2,9 +2,54 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { dataService } from '../../services/dataService';
+import { useNavigate } from 'react-router-dom';
 import ConfirmModal from '../../components/ConfirmModal';
+import CertificatePreviewModal from '../../components/CertificatePreviewModal';
 
-// Status metadata for nicer labels + variant suggestions
+// ============================================================
+//  HELPERS
+// ============================================================
+
+// Turns camelCase keys into nice labels for the details modal
+function formatFieldLabel(key) {
+  const map = {
+    // Common
+    fullName: 'Full Name',
+    sonDaughterOf: 'Son/Daughter of',
+    bookType: 'Book Type',
+    gkkMember: 'GKK / Parishioner Status',
+    youthOrg: 'Youth Organization',
+    purpose: 'Purpose',
+
+    // Baptism
+    baptizedName: 'Name of Baptized',
+    dateOfBirth: 'Date of Birth',
+    placeOfBirth: 'Place of Birth',
+    fatherName: "Father's Name",
+    motherName: "Mother's Name",
+    sponsors: 'Sponsors',
+    officiatingMinister: 'Officiating Minister',
+    dateOfBaptism: 'Date of Baptism',
+
+    // Confirmation
+    confirmedName: 'Name of Confirmed',
+    parish: 'Parish',
+    dateOfConfirmation: 'Date of Confirmation',
+    sponsor: 'Sponsor(s)',
+
+    // Marriage
+    groomName: "Groom's Full Name",
+    brideName: "Bride's Full Name",
+    dateOfMarriage: 'Date of Marriage',
+    placeOfMarriage: 'Place of Marriage',
+    groomFather: "Groom's Father",
+    groomMother: "Groom's Mother",
+    brideFather: "Bride's Father",
+    brideMother: "Bride's Mother",
+  };
+  return map[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase());
+}
+
 const STATUS_META = {
   pending: {
     label: 'Pending',
@@ -44,12 +89,16 @@ const STATUS_META = {
 };
 
 export default function ReviewRequests() {
+  const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState('');
   const [preview, setPreview] = useState(null);
   const [selectedRequests, setSelectedRequests] = useState([]);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // ---- Certificate print modal ----
+  const [certificatePreview, setCertificatePreview] = useState(null);
 
   // ---- Confirmation modal state ----
   const [confirm, setConfirm] = useState({
@@ -203,7 +252,7 @@ export default function ReviewRequests() {
     }
   };
 
-  // ---- Verify GCash payment (with confirmation) ----
+  // ---- Verify GCash payment ----
   const verifyPayment = (req) => {
     openConfirm({
       title: 'Verify this payment?',
@@ -223,9 +272,8 @@ export default function ReviewRequests() {
     });
   };
 
-  // ---- Change status (with confirmation) ----
+  // ---- Change status ----
   const updateStatus = (req, newStatus) => {
-    // If it's the same status, do nothing
     if (req.status === newStatus) return;
 
     const meta = STATUS_META[newStatus] || {
@@ -408,7 +456,7 @@ export default function ReviewRequests() {
               <th>Requestor</th>
               <th>Certificate</th>
               <th>Email</th>
-              <th>DOB</th>
+              <th>Details</th>
               <th>Appointment</th>
               <th>Payment</th>
               <th>Files</th>
@@ -431,7 +479,23 @@ export default function ReviewRequests() {
                 <td>{req.user_name}</td>
                 <td>{req.certificate_type}</td>
                 <td>{req.email}</td>
-                <td>{req.dob}</td>
+                <td>
+                  <button
+                    type="button"
+                    className="link-button"
+                    onClick={() =>
+                      setPreview({
+                        title: `${req.certificate_type} — Details`,
+                        type: 'details',
+                        details: req.details || {},
+                        requestId: req.id,
+                        requestor: req.user_name,
+                      })
+                    }
+                  >
+                    View Details
+                  </button>
+                </td>
                 <td>
                   {req.appointment_date} <br /> {req.appointment_time}
                 </td>
@@ -500,6 +564,41 @@ export default function ReviewRequests() {
                     <option value="rejected">Rejected</option>
                   </select>
                   <button onClick={() => sendManualEmail(req.id)}>Email</button>
+
+                  {/* Layout editor button */}
+                  <button
+                    onClick={() => navigate(`/admin/layout/${req.id}`)}
+                    style={{
+                      background: '#C9A961',
+                      color: '#0A1628',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '4px 10px',
+                      cursor: 'pointer',
+                      fontWeight: 700,
+                    }}
+                    title="Adjust certificate layout"
+                  >
+                    ✎ Layout
+                  </button>
+
+                  {/* Print preview button */}
+                  <button
+                    onClick={() => setCertificatePreview(req)}
+                    style={{
+                      background: '#3B82C4',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '4px 10px',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                    }}
+                    title="Generate Certificate PDF"
+                  >
+                    📄 Print
+                  </button>
+
                   <button
                     onClick={() => handleDeleteRequest(req.id)}
                     disabled={deleteLoading}
@@ -521,6 +620,7 @@ export default function ReviewRequests() {
         </table>
       </div>
 
+      {/* ===== PREVIEW MODAL (file / details) ===== */}
       {preview && (
         <div className="preview-overlay" onClick={() => setPreview(null)}>
           <div className="preview-card" onClick={(e) => e.stopPropagation()}>
@@ -533,7 +633,28 @@ export default function ReviewRequests() {
                 ✕
               </button>
             </div>
-            {preview.type?.startsWith('image/') ? (
+
+            {preview.type === 'details' ? (
+              <div className="preview-details">
+                <p className="preview-details-sub">
+                  Request #{preview.requestId} — {preview.requestor}
+                </p>
+                <dl className="preview-details-list">
+                  {Object.entries(preview.details).length === 0 ? (
+                    <p style={{ color: '#6B7A8F', fontStyle: 'italic' }}>
+                      No details recorded for this request.
+                    </p>
+                  ) : (
+                    Object.entries(preview.details).map(([key, value]) => (
+                      <div key={key} className="preview-details-row">
+                        <dt>{formatFieldLabel(key)}</dt>
+                        <dd>{value || '—'}</dd>
+                      </div>
+                    ))
+                  )}
+                </dl>
+              </div>
+            ) : preview.type?.startsWith('image/') ? (
               <img src={preview.file} alt={preview.title} className="preview-image" />
             ) : (
               <div className="preview-file">
@@ -558,6 +679,14 @@ export default function ReviewRequests() {
         loading={confirm.loading}
         onConfirm={confirm.onConfirm}
         onCancel={closeConfirm}
+      />
+
+      {/* ===== CERTIFICATE PRINT MODAL ===== */}
+      <CertificatePreviewModal
+        isOpen={!!certificatePreview}
+        request={certificatePreview}
+        onClose={() => setCertificatePreview(null)}
+        allowAnyStatus={true}
       />
     </div>
   );

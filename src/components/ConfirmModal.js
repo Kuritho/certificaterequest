@@ -1,4 +1,4 @@
-// src/components/ConfirmModal.js
+// src/components/ConfirmModal.jsx
 import { useEffect } from 'react';
 
 export default function ConfirmModal({
@@ -7,14 +7,15 @@ export default function ConfirmModal({
   message = 'This action cannot be undone.',
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
-  variant = 'danger',
+  variant = 'danger', // 'danger' | 'primary' | 'warning' | 'success'
   onConfirm,
   onCancel,
   loading = false,
-  icon = 'warning',
-  customBody = null, // ← NEW: optional JSX to render between message and actions
+  icon = 'warning', // 'warning' | 'trash' | 'check' | 'info' | 'shield' | 'megaphone' | 'calendar' | 'clock'
+  customBody = null,
+  zIndex = 3000, // ← NEW: allow callers to raise the modal above other modals
 }) {
-  // ESC to close
+  // Close on ESC key
   useEffect(() => {
     if (!isOpen) return;
     const handleKey = (e) => {
@@ -24,7 +25,7 @@ export default function ConfirmModal({
     return () => window.removeEventListener('keydown', handleKey);
   }, [isOpen, loading, onCancel]);
 
-  // Lock body scroll
+  // Lock body scroll while open
   useEffect(() => {
     if (isOpen) {
       const original = document.body.style.overflow;
@@ -72,7 +73,6 @@ export default function ConfirmModal({
         <path d="M9 12l2 2 4-4" />
       </svg>
     ),
-    // NEW icons for posting
     megaphone: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 11l18-8v18l-18-8z" />
@@ -96,7 +96,11 @@ export default function ConfirmModal({
   };
 
   return (
-    <div className="confirm-overlay" onClick={() => !loading && onCancel()}>
+    <div
+      className="confirm-overlay"
+      style={{ zIndex }} // ← uses the passed z-index (default 3000)
+      onClick={() => !loading && onCancel()}
+    >
       <div
         className={`confirm-modal confirm-${variant} ${customBody ? 'has-custom-body' : ''}`}
         onClick={(e) => e.stopPropagation()}
@@ -135,10 +139,10 @@ export default function ConfirmModal({
         {/* Message */}
         <p className="confirm-message">{message}</p>
 
-        {/* NEW: Custom preview body */}
+        {/* Optional custom body (e.g., previews) */}
         {customBody && <div className="confirm-custom-body">{customBody}</div>}
 
-        {/* Divider with gold accent */}
+        {/* Ornamental divider */}
         <div className="confirm-divider" aria-hidden="true">
           <span className="confirm-divider-line"></span>
           <span className="confirm-divider-diamond"></span>
